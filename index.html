@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FatihSports | Canlı TV</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -89,6 +92,7 @@
             align-items: center;
             gap: 10px;
             pointer-events: none;
+            z-index: 2;
         }
 
         .live-indicator {
@@ -168,7 +172,7 @@
         .channel-logo {
             width: 35px;
             height: 35px;
-            object-fit: contain; /* Logonun orantılı sığmasını sağlar */
+            object-fit: contain;
             border-radius: 4px;
             background-color: transparent;
         }
@@ -223,38 +227,31 @@
             <div class="sidebar-header">
                 Kanal Listesi
             </div>
-            <div class="channel-list" id="channel-list">
-                </div>
+            <div class="channel-list" id="channel-list"></div>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // KANALLARI BURAYA EKLEYEBİLİRSİN
-        // Yeni özellik: 'logo' parametresi. 
-        // İnternetteki bir resim linkini (png, jpg, webp) buraya yapıştırabilirsin.
-        // Logo eklemezsen otomatik olarak kanalın baş harflerini gösterir.
-        // ==========================================
         const channels = [
             {
-                name: "Fatih Sports 1",
-                url: "https://cdn.theoplayer.com/demos/iframe/theoplayer.html?autoplay=false&muted=false&preload=none&src=https://tv-trt1-dash.medya.trt.com.tr/master.mpd",
-                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Soccer_ball.svg/100px-Soccer_ball.svg.png" // Örnek Futbol Topu Logosu
+                name: "TRT 1 (DASH Test)",
+                // Dikkat: iframe linki yerine direkt mpd linki koyuldu
+                url: "https://tv-trt1-dash.medya.trt.com.tr/master.mpd",
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Soccer_ball.svg/100px-Soccer_ball.svg.png" 
             },
             {
-                name: "Basketbol TV",
+                name: "Basketbol TV (HLS Test)",
                 url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Basketball.png/100px-Basketball.png" // Örnek Basketbol Topu Logosu
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Basketball.png/100px-Basketball.png"
             },
             {
                 name: "Haber Kanalı",
                 url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-                // Logo satırı yok, otomatik "HA" yazacak.
             },
             {
                 name: "Belgesel TV",
                 url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-                logo: "" // Logo boş bırakılmış, otomatik "BE" yazacak.
+                logo: ""
             }
         ];
 
@@ -262,11 +259,14 @@
         const channelListContainer = document.getElementById('channel-list');
         const currentChannelNameEl = document.getElementById('current-channel-name');
         const nowPlayingBadge = document.getElementById('now-playing-badge');
-        let hls;
+        
+        // Player değişkenleri
+        let hlsPlayer = null;
+        let dashPlayer = null;
 
         // Kanalları Listeleme Fonksiyonu
         function renderChannels() {
-            channelListContainer.innerHTML = ''; // Listeyi temizle
+            channelListContainer.innerHTML = ''; 
 
             channels.forEach((channel, index) => {
                 const button = document.createElement('button');
@@ -275,11 +275,9 @@
 
                 let mediaIconHtml = '';
 
-                // Eğer logo tanımlanmışsa ve içi boş değilse resmi göster
                 if (channel.logo && channel.logo.trim() !== '') {
                     mediaIconHtml = `<img src="${channel.logo}" alt="${channel.name}" class="channel-logo" onerror="this.style.display='none'">`;
                 } else {
-                    // Logo yoksa ismin ilk iki harfini göster
                     const shortName = channel.name.substring(0, 2).toUpperCase();
                     mediaIconHtml = `<div class="channel-icon">${shortName}</div>`;
                 }
@@ -293,36 +291,74 @@
 
                 // İlk kanalı otomatik aç
                 if (index === 0) {
-                    playChannel(channel, button);
+                    // Sayfa yüklendiğinde butonun tıklanma efektiyle çalışmasını bekle
+                    setTimeout(() => playChannel(channel, button), 100);
                 }
             });
         }
 
+        // Önceki oynatıcıları temizleme fonksiyonu (Ses/Görüntü çakışmasını önler)
+        function destroyPlayers() {
+            if (hlsPlayer) {
+                hlsPlayer.destroy();
+                hlsPlayer = null;
+            }
+            if (dashPlayer) {
+                dashPlayer.destroy();
+                dashPlayer = null;
+            }
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+        }
+
         // Kanal Oynatma Fonksiyonu
         function playChannel(channel, buttonElement) {
+            // Aktif buton stilini güncelle
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             if(buttonElement) buttonElement.classList.add('active');
 
+            // Başlığı güncelle
             currentChannelNameEl.innerText = channel.name;
             nowPlayingBadge.style.display = 'flex';
 
-            if (Hls.isSupported()) {
-                if (hls) {
-                    hls.destroy(); 
+            // Eski yayını kapat
+            destroyPlayers();
+
+            const url = channel.url.toLowerCase();
+
+            // DASH (.mpd) Yayınları İçin
+            if (url.includes('.mpd')) {
+                if (typeof dashjs !== 'undefined') {
+                    dashPlayer = dashjs.MediaPlayer().create();
+                    dashPlayer.initialize(video, channel.url, true);
+                } else {
+                    alert("Tarayıcınız DASH oynatmayı desteklemiyor.");
                 }
-                hls = new Hls();
-                hls.loadSource(channel.url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                    video.play().catch(e => console.log("Otomatik oynatma engellendi."));
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = channel.url;
-                video.addEventListener('loadedmetadata', function () {
-                    video.play();
-                });
-            } else {
-                alert("Tarayıcınız bu video formatını desteklemiyor.");
+            } 
+            // HLS (.m3u8) Yayınları İçin
+            else if (url.includes('.m3u8')) {
+                if (Hls.isSupported()) {
+                    hlsPlayer = new Hls();
+                    hlsPlayer.loadSource(channel.url);
+                    hlsPlayer.attachMedia(video);
+                    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function () {
+                        video.play().catch(e => console.log("Otomatik oynatma engellendi."));
+                    });
+                } 
+                // Safari gibi native HLS destekleyen tarayıcılar için fallback
+                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = channel.url;
+                    video.addEventListener('loadedmetadata', function () {
+                        video.play();
+                    });
+                } else {
+                    alert("Tarayıcınız HLS video formatını desteklemiyor.");
+                }
+            } 
+            // Desteklenmeyen Format
+            else {
+                alert("Desteklenmeyen video formatı. Lütfen m3u8 veya mpd kullanın.");
             }
         }
 
@@ -330,4 +366,3 @@
     </script>
 </body>
 </html>
-
