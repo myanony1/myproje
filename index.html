@@ -1,1 +1,333 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FatihSports | Canlı TV</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #e50914; 
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --text-muted: #aaaaaa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Üst Menü / Header */
+        header {
+            background-color: var(--panel-bg);
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-color);
+            letter-spacing: 1px;
+        }
+
+        header h1 span {
+            color: var(--primary-color);
+        }
+
+        /* Ana İçerik Alanı */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Video Oynatıcı Alanı */
+        .player-section {
+            flex: 3;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            outline: none;
+        }
+
+        .now-playing {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .live-indicator {
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(229, 9, 20, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0); }
+        }
+
+        /* Kanal Listesi Alanı */
+        .sidebar {
+            flex: 1;
+            background-color: var(--panel-bg);
+            min-width: 300px;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #333;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .channel-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .channel-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .channel-list::-webkit-scrollbar-thumb {
+            background-color: #444;
+            border-radius: 4px;
+        }
+
+        .channel-btn {
+            width: 100%;
+            background-color: transparent;
+            color: var(--text-color);
+            border: none;
+            padding: 15px;
+            margin-bottom: 8px;
+            text-align: left;
+            font-size: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .channel-btn:hover {
+            background-color: #333;
+            transform: translateX(5px);
+        }
+
+        .channel-btn.active {
+            background-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* Logo ve İkon Stilleri */
+        .channel-logo {
+            width: 35px;
+            height: 35px;
+            object-fit: contain; /* Logonun orantılı sığmasını sağlar */
+            border-radius: 4px;
+            background-color: transparent;
+        }
+
+        .channel-icon {
+            width: 35px;
+            height: 35px;
+            background-color: #444;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        /* Mobil Uyumluluk */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                max-width: 100%;
+                flex: 1;
+                border-left: none;
+                border-top: 1px solid #333;
+            }
+            .player-section {
+                flex: none;
+                height: 40vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Fatih<span>Sports</span></h1>
+    </header>
+
+    <div class="main-container">
+        <div class="player-section">
+            <div class="now-playing" id="now-playing-badge" style="display: none;">
+                <div class="live-indicator"></div>
+                <span id="current-channel-name">Kanal Seçilmedi</span>
+            </div>
+            <video id="tv-player" controls autoplay></video>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-header">
+                Kanal Listesi
+            </div>
+            <div class="channel-list" id="channel-list">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // KANALLARI BURAYA EKLEYEBİLİRSİN
+        // Yeni özellik: 'logo' parametresi. 
+        // İnternetteki bir resim linkini (png, jpg, webp) buraya yapıştırabilirsin.
+        // Logo eklemezsen otomatik olarak kanalın baş harflerini gösterir.
+        // ==========================================
+        const channels = [
+            {
+                name: "Fatih Sports 1",
+                url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Soccer_ball.svg/100px-Soccer_ball.svg.png" // Örnek Futbol Topu Logosu
+            },
+            {
+                name: "Basketbol TV",
+                url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Basketball.png/100px-Basketball.png" // Örnek Basketbol Topu Logosu
+            },
+            {
+                name: "Haber Kanalı",
+                url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+                // Logo satırı yok, otomatik "HA" yazacak.
+            },
+            {
+                name: "Belgesel TV",
+                url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+                logo: "" // Logo boş bırakılmış, otomatik "BE" yazacak.
+            }
+        ];
+
+        const video = document.getElementById('tv-player');
+        const channelListContainer = document.getElementById('channel-list');
+        const currentChannelNameEl = document.getElementById('current-channel-name');
+        const nowPlayingBadge = document.getElementById('now-playing-badge');
+        let hls;
+
+        // Kanalları Listeleme Fonksiyonu
+        function renderChannels() {
+            channelListContainer.innerHTML = ''; // Listeyi temizle
+
+            channels.forEach((channel, index) => {
+                const button = document.createElement('button');
+                button.className = 'channel-btn';
+                button.onclick = () => playChannel(channel, button);
+
+                let mediaIconHtml = '';
+
+                // Eğer logo tanımlanmışsa ve içi boş değilse resmi göster
+                if (channel.logo && channel.logo.trim() !== '') {
+                    mediaIconHtml = `<img src="${channel.logo}" alt="${channel.name}" class="channel-logo" onerror="this.style.display='none'">`;
+                } else {
+                    // Logo yoksa ismin ilk iki harfini göster
+                    const shortName = channel.name.substring(0, 2).toUpperCase();
+                    mediaIconHtml = `<div class="channel-icon">${shortName}</div>`;
+                }
+
+                button.innerHTML = `
+                    ${mediaIconHtml}
+                    <span>${channel.name}</span>
+                `;
+
+                channelListContainer.appendChild(button);
+
+                // İlk kanalı otomatik aç
+                if (index === 0) {
+                    playChannel(channel, button);
+                }
+            });
+        }
+
+        // Kanal Oynatma Fonksiyonu
+        function playChannel(channel, buttonElement) {
+            document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
+            if(buttonElement) buttonElement.classList.add('active');
+
+            currentChannelNameEl.innerText = channel.name;
+            nowPlayingBadge.style.display = 'flex';
+
+            if (Hls.isSupported()) {
+                if (hls) {
+                    hls.destroy(); 
+                }
+                hls = new Hls();
+                hls.loadSource(channel.url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                    video.play().catch(e => console.log("Otomatik oynatma engellendi."));
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = channel.url;
+                video.addEventListener('loadedmetadata', function () {
+                    video.play();
+                });
+            } else {
+                alert("Tarayıcınız bu video formatını desteklemiyor.");
+            }
+        }
+
+        window.onload = renderChannels;
+    </script>
+</body>
+</html>
 
