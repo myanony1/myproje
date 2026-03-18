@@ -79,6 +79,7 @@
             outline: none;
         }
 
+        /* Sol Üst - Şu An Oynatılan Bilgisi */
         .now-playing {
             position: absolute;
             top: 20px;
@@ -107,6 +108,33 @@
             0% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(229, 9, 20, 0); }
             100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0); }
+        }
+
+        /* Sağ Üst - Araç Çubuğu (Kalite ve Tam Ekran) */
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 2;
+        }
+
+        .toolbar select, .toolbar button {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 1px solid #444;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .toolbar select:hover, .toolbar button:hover {
+            background: rgba(229, 9, 20, 0.8);
+            border-color: var(--primary-color);
         }
 
         /* Kanal Listesi Alanı */
@@ -168,7 +196,6 @@
             font-weight: 600;
         }
 
-        /* Logo ve İkon Stilleri */
         .channel-logo {
             width: 35px;
             height: 35px;
@@ -190,7 +217,6 @@
             color: #fff;
         }
 
-        /* Mobil Uyumluluk */
         @media (max-width: 900px) {
             .main-container {
                 flex-direction: column;
@@ -215,11 +241,20 @@
     </header>
 
     <div class="main-container">
-        <div class="player-section">
+        <div class="player-section" id="player-container">
+            
             <div class="now-playing" id="now-playing-badge" style="display: none;">
                 <div class="live-indicator"></div>
                 <span id="current-channel-name">Kanal Seçilmedi</span>
             </div>
+
+            <div class="toolbar" id="toolbar" style="display: none;">
+                <select id="quality-selector">
+                    <option value="-1">Otomatik</option>
+                </select>
+                <button id="fullscreen-btn" onclick="toggleFullScreen()">Tam Ekran ⛶</button>
+            </div>
+
             <video id="tv-player" controls autoplay></video>
         </div>
 
@@ -234,13 +269,12 @@
     <script>
         const channels = [
             {
-                name: "TRT 1 (DASH Test)",
-                // Dikkat: iframe linki yerine direkt mpd linki koyuldu
+                name: "FatihSports 1 (Canlı)",
                 url: "https://tv-trt1-dash.medya.trt.com.tr/master.mpd",
                 logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Soccer_ball.svg/100px-Soccer_ball.svg.png" 
             },
             {
-                name: "Basketbol TV (HLS Test)",
+                name: "Test Yayını",
                 url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
                 logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Basketball.png/100px-Basketball.png"
             },
@@ -259,10 +293,42 @@
         const channelListContainer = document.getElementById('channel-list');
         const currentChannelNameEl = document.getElementById('current-channel-name');
         const nowPlayingBadge = document.getElementById('now-playing-badge');
+        const toolbar = document.getElementById('toolbar');
+        const qualitySelector = document.getElementById('quality-selector');
+        const playerContainer = document.getElementById('player-container');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
         
         // Player değişkenleri
         let hlsPlayer = null;
         let dashPlayer = null;
+
+        // Tam Ekran Fonksiyonu
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                if (playerContainer.requestFullscreen) {
+                    playerContainer.requestFullscreen();
+                } else if (playerContainer.webkitRequestFullscreen) { /* Safari */
+                    playerContainer.webkitRequestFullscreen();
+                } else if (playerContainer.msRequestFullscreen) { /* IE11 */
+                    playerContainer.msRequestFullscreen();
+                }
+                fullscreenBtn.innerText = "Küçült ✖";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE11 */
+                    document.msExitFullscreen();
+                }
+                fullscreenBtn.innerText = "Tam Ekran ⛶";
+            }
+        }
+
+        // ESC tuşu ile tam ekrandan çıkışta butonu güncelle
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) fullscreenBtn.innerText = "Tam Ekran ⛶";
+        });
 
         // Kanalları Listeleme Fonksiyonu
         function renderChannels() {
@@ -289,15 +355,13 @@
 
                 channelListContainer.appendChild(button);
 
-                // İlk kanalı otomatik aç
                 if (index === 0) {
-                    // Sayfa yüklendiğinde butonun tıklanma efektiyle çalışmasını bekle
                     setTimeout(() => playChannel(channel, button), 100);
                 }
             });
         }
 
-        // Önceki oynatıcıları temizleme fonksiyonu (Ses/Görüntü çakışmasını önler)
+        // Önceki oynatıcıları temizleme fonksiyonu
         function destroyPlayers() {
             if (hlsPlayer) {
                 hlsPlayer.destroy();
@@ -310,19 +374,21 @@
             video.pause();
             video.removeAttribute('src');
             video.load();
+            
+            // Kalite seçiciyi sıfırla
+            qualitySelector.innerHTML = '<option value="-1">Otomatik</option>';
+            qualitySelector.style.display = 'none'; // Çözünürlükler yüklenene kadar gizle
         }
 
         // Kanal Oynatma Fonksiyonu
         function playChannel(channel, buttonElement) {
-            // Aktif buton stilini güncelle
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             if(buttonElement) buttonElement.classList.add('active');
 
-            // Başlığı güncelle
             currentChannelNameEl.innerText = channel.name;
             nowPlayingBadge.style.display = 'flex';
+            toolbar.style.display = 'flex';
 
-            // Eski yayını kapat
             destroyPlayers();
 
             const url = channel.url.toLowerCase();
@@ -332,6 +398,32 @@
                 if (typeof dashjs !== 'undefined') {
                     dashPlayer = dashjs.MediaPlayer().create();
                     dashPlayer.initialize(video, channel.url, true);
+                    
+                    // Kalite Seviyelerini Çek (DASH)
+                    dashPlayer.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, function () {
+                        const bitrates = dashPlayer.getBitrateInfoListFor("video");
+                        if (bitrates.length > 1) {
+                            qualitySelector.style.display = 'inline-block';
+                            bitrates.forEach((bitrate, index) => {
+                                const option = document.createElement('option');
+                                option.value = index;
+                                option.text = `${bitrate.height}p`;
+                                qualitySelector.appendChild(option);
+                            });
+                        }
+                    });
+
+                    // DASH Kalite Değişimi
+                    qualitySelector.onchange = (e) => {
+                        const val = parseInt(e.target.value);
+                        if (val === -1) {
+                            dashPlayer.updateSettings({ streaming: { abr: { autoSwitchBitrate: { video: true } } } });
+                        } else {
+                            dashPlayer.updateSettings({ streaming: { abr: { autoSwitchBitrate: { video: false } } } });
+                            dashPlayer.setQualityFor("video", val);
+                        }
+                    };
+
                 } else {
                     alert("Tarayıcınız DASH oynatmayı desteklemiyor.");
                 }
@@ -342,12 +434,29 @@
                     hlsPlayer = new Hls();
                     hlsPlayer.loadSource(channel.url);
                     hlsPlayer.attachMedia(video);
-                    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function () {
+                    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
                         video.play().catch(e => console.log("Otomatik oynatma engellendi."));
+                        
+                        // Kalite Seviyelerini Çek (HLS)
+                        const levels = hlsPlayer.levels;
+                        if (levels.length > 1) {
+                            qualitySelector.style.display = 'inline-block';
+                            levels.forEach((level, index) => {
+                                const option = document.createElement('option');
+                                option.value = index;
+                                option.text = `${level.height}p`;
+                                qualitySelector.appendChild(option);
+                            });
+                        }
                     });
-                } 
-                // Safari gibi native HLS destekleyen tarayıcılar için fallback
-                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+
+                    // HLS Kalite Değişimi
+                    qualitySelector.onchange = (e) => {
+                        hlsPlayer.currentLevel = parseInt(e.target.value);
+                    };
+
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Safari gibi yerel HLS destekleyen tarayıcılar (Manuel kalite seçimi genelde Safari'de desteklenmez)
                     video.src = channel.url;
                     video.addEventListener('loadedmetadata', function () {
                         video.play();
@@ -355,9 +464,7 @@
                 } else {
                     alert("Tarayıcınız HLS video formatını desteklemiyor.");
                 }
-            } 
-            // Desteklenmeyen Format
-            else {
+            } else {
                 alert("Desteklenmeyen video formatı. Lütfen m3u8 veya mpd kullanın.");
             }
         }
