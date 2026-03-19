@@ -21,7 +21,7 @@
             --text-color: #ffffff;
             --spor-color: #28a745;   
             --ulusal-color: #dc3545; 
-            --fav-color: #f39c12; /* Favoriler için altın sarısı */
+            --fav-color: #f39c12; 
             
             --plyr-color-main: #e50914; 
             --plyr-video-background: #000000;
@@ -92,7 +92,6 @@
 
         .plyr { width: 100%; height: 100%; }
 
-        /* YÜKLENİYOR VE HATA EKRANI STİLLERİ */
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85); display: none; flex-direction: column;
@@ -193,7 +192,6 @@
             font-size: 12px; color: #fff;
         }
 
-        /* FAVORİ YILDIZ STİLİ */
         .fav-star {
             margin-left: auto; font-size: 20px; color: #555; cursor: pointer; transition: 0.2s;
         }
@@ -288,10 +286,10 @@
             { name: "TRT SPOR HD", url: "https://tv-trtspor1.medya.trt.com.tr/master_1080.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/TRT_1_logo.svg/200px-TRT_1_logo.svg.png", category: "Ulusal" }
         ];
 
-        // GLOBAL DEĞİŞKENLER
         let currentCategory = 'Spor';
         let currentActiveChannelObj = null; 
         let favoriteChannels = JSON.parse(localStorage.getItem('fatih_favorites')) || [];
+        let forceHideLoaderTimeout = null; // Zamanlayıcı değişkeni
 
         const channelListContainer = document.getElementById('channel-list');
         const currentChannelNameEl = document.getElementById('current-channel-name');
@@ -304,7 +302,6 @@
         let dashPlayer = null;
         let plyrInstance = null;
 
-        // KATEGORİ SEÇİMİ
         function setCategory(categoryName) {
             currentCategory = categoryName;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -312,9 +309,8 @@
             renderChannels();
         }
 
-        // FAVORİ EKLE/ÇIKAR
         function toggleFavorite(e, channelName) {
-            e.stopPropagation(); // Butonun tıklanma olayını engeller, böylece kanal açılmaz
+            e.stopPropagation(); 
             
             if (favoriteChannels.includes(channelName)) {
                 favoriteChannels = favoriteChannels.filter(name => name !== channelName);
@@ -323,10 +319,9 @@
             }
             
             localStorage.setItem('fatih_favorites', JSON.stringify(favoriteChannels));
-            renderChannels(); // Yıldızların güncellenmesi için listeyi tekrar çiz
+            renderChannels(); 
         }
 
-        // KANALLARI LİSTELE
         function renderChannels() {
             channelListContainer.innerHTML = ''; 
 
@@ -348,7 +343,6 @@
                 const button = document.createElement('div');
                 button.className = `channel-btn ${currentActiveChannelObj && currentActiveChannelObj.name === channel.name ? 'active' : ''}`;
                 
-                // Kanal butonu tıklanması
                 button.onclick = () => playChannel(channel, button);
 
                 let mediaIconHtml = channel.logo ? 
@@ -365,28 +359,47 @@
             });
         }
 
-        // YENİDEN DENE FONKSİYONU
         function retryStream() {
             if(currentActiveChannelObj) {
                 playChannel(currentActiveChannelObj);
             }
         }
 
-        // KANAL OYNATMA
+        // VİDEO OYNATMA BAŞLATICI FONKSİYON (ENGEL YAKALAYICI)
+        function startSmartPlayback() {
+            if (!plyrInstance) return;
+            const playPromise = plyrInstance.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch((error) => {
+                    // Tarayıcı otomatik oynamayı engellediğinde loader'ı gizle!
+                    console.log("Otomatik oynatma tarayıcı tarafından engellendi. Kullanıcı etkileşimi bekleniyor.");
+                    loaderOverlay.style.display = 'none';
+                    if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
+                });
+            }
+        }
+
         function playChannel(channel, buttonElement = null) {
             currentActiveChannelObj = channel;
             
-            // Aktif buton stilini güncelle
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             if(buttonElement) buttonElement.classList.add('active');
-            else renderChannels(); // Buton yoksa (retry yapılmışsa) listeyi güncelleyerek aktif seç
+            else renderChannels(); 
 
             currentChannelNameEl.innerText = channel.name;
             nowPlayingBadge.style.display = 'flex';
             
-            // UI Durumları (Loading göster, Error gizle)
             loaderOverlay.style.display = 'flex';
             errorOverlay.style.display = 'none';
+
+            // ZAMAN AŞIMI GÜVENLİĞİ: Ne olursa olsun 10 saniye sonra loadingi gizle.
+            if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
+            forceHideLoaderTimeout = setTimeout(() => {
+                if(loaderOverlay.style.display === 'flex') {
+                    loaderOverlay.style.display = 'none';
+                }
+            }, 10000);
 
             if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
             if (dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
@@ -395,15 +408,17 @@
             videoWrapper.innerHTML = '<video id="tv-player" controls crossorigin playsinline></video>';
             const video = document.getElementById('tv-player');
 
-            // Video oynadığında Loading gizle
+            // Video gerçekten oynamaya başladığında loader'ı kapat
             video.addEventListener('playing', () => {
                 loaderOverlay.style.display = 'none';
+                if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
             });
 
-            // Doğal Video Hatası
+            // Gerçek bir hata oluştuğunda
             video.addEventListener('error', () => {
                 loaderOverlay.style.display = 'none';
                 errorOverlay.style.display = 'flex';
+                if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
             });
 
             const url = channel.url.toLowerCase();
@@ -414,9 +429,8 @@
 
             if (url.includes('.m3u8')) {
                 if (Hls.isSupported()) {
-                    hlsPlayer = new Hls({ maxMaxBufferLength: 10 }); // Canlı TV için düşük tampon
+                    hlsPlayer = new Hls({ maxMaxBufferLength: 10 }); 
                     
-                    // HLS Özel Hata Yakalama
                     hlsPlayer.on(Hls.Events.ERROR, function (event, data) {
                         if (data.fatal) {
                             switch (data.type) {
@@ -445,31 +459,36 @@
                             options: availableQualities,
                             forced: true,
                             onChange: (e) => {
-                                if (newQuality === 0) hlsPlayer.currentLevel = -1; 
+                                if (e === 0) hlsPlayer.currentLevel = -1; 
                                 else hlsPlayer.levels.forEach((l, i) => { if (l.height === e) hlsPlayer.currentLevel = i; });
                             }
                         };
                         plyrInstance = new Plyr(video, plyrOptions);
-                        plyrInstance.play().catch(() => {});
+                        
+                        // Akıllı oynatmayı başlat
+                        startSmartPlayback();
                     });
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = channel.url;
                     plyrInstance = new Plyr(video, plyrOptions);
-                    video.addEventListener('loadedmetadata', () => plyrInstance.play().catch(() => {}));
+                    video.addEventListener('loadedmetadata', () => startSmartPlayback());
                 }
             } 
             else if (url.includes('.mpd')) {
                 if (typeof dashjs !== 'undefined') {
                     dashPlayer = dashjs.MediaPlayer().create();
                     
-                    // DASH Hata Yakalama
                     dashPlayer.on(dashjs.MediaPlayer.events.ERROR, function() {
                         loaderOverlay.style.display = 'none';
                         errorOverlay.style.display = 'flex';
                     });
 
-                    dashPlayer.initialize(video, channel.url, true);
+                    dashPlayer.initialize(video, channel.url, false); // Otomatik oynamayı kapat, Plyr üzerinden başlatalım
                     plyrInstance = new Plyr(video, plyrOptions);
+                    
+                    plyrInstance.on('ready', () => {
+                        startSmartPlayback();
+                    });
                 }
             }
         }
