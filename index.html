@@ -30,7 +30,7 @@
         body.light-mode {
             --bg-color: #f4f4f4;
             --panel-bg: #ffffff;
-            --text-color: #121212;
+            --text-color: #121212; /* Bu renk Aydınlık modda Ay'ı siyah yapacak */
         }
 
         * {
@@ -55,7 +55,7 @@
             padding: 15px 30px;
             display: flex;
             align-items: center;
-            justify-content: space-between; /* BAŞLIK SOLA, BUTON SAĞA YASLANSIN */
+            justify-content: space-between;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             z-index: 10;
             transition: background-color 0.3s ease;
@@ -72,21 +72,35 @@
             color: var(--primary-color);
         }
 
-        /* TEMA BUTONU STİLLERİ */
+        /* TEMA BUTONU VE SVG İKON STİLLERİ */
         .theme-toggle-btn {
             background: none;
             border: none;
-            font-size: 24px;
             cursor: pointer;
             transition: transform 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--text-color); /* İkon rengini temaya bağladık */
         }
 
         .theme-toggle-btn:hover {
             transform: scale(1.1);
         }
+
+        .theme-toggle-btn svg {
+            width: 26px;
+            height: 26px;
+            transition: all 0.3s ease;
+        }
+
+        /* Varsayılan (Karanlık Mod) - Güneşi Göster, Ayı Gizle */
+        #icon-moon { display: none; }
+        #icon-sun { display: block; }
+
+        /* Aydınlık Mod - Ayı Göster, Güneşi Gizle */
+        body.light-mode #icon-sun { display: none; }
+        body.light-mode #icon-moon { display: block; }
 
         .main-container {
             display: flex;
@@ -120,7 +134,7 @@
             top: 20px;
             left: 20px;
             background: rgba(0, 0, 0, 0.7);
-            color: #ffffff; /* Siyah arkaplan üzerinde beyaz yazsın */
+            color: #ffffff;
             padding: 8px 15px;
             border-radius: 5px;
             font-size: 14px;
@@ -153,7 +167,7 @@
             max-width: 400px;
             display: flex;
             flex-direction: column;
-            border-left: 1px solid rgba(128, 128, 128, 0.2); /* Tema uyumlu border */
+            border-left: 1px solid rgba(128, 128, 128, 0.2);
             overflow: hidden;
             transition: background-color 0.3s ease;
         }
@@ -186,7 +200,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Aydınlık mod için kategori butonları */
         body.light-mode .tab-btn {
             background-color: #e0e0e0;
             color: #333;
@@ -251,7 +264,6 @@
             font-weight: 600;
         }
 
-        /* Aydınlık mod kanal butonları */
         body.light-mode .channel-btn:hover {
             background-color: #f0f0f0;
         }
@@ -296,7 +308,23 @@
 
     <header>
         <h1>Fatih<span>Sports</span></h1>
-        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Temayı Değiştir" title="Aydınlık/Karanlık Mod">☀️</button>
+        
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Temayı Değiştir" title="Aydınlık/Karanlık Mod">
+            <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
     </header>
 
     <div class="main-container">
@@ -324,26 +352,23 @@
     </div>
 
     <script>
-        // TEMA YÖNETİMİ
+        // TEMA YÖNETİMİ (GÜNCELLENDİ)
         const themeToggleBtn = document.getElementById('theme-toggle');
         const currentTheme = localStorage.getItem('fatih_theme');
 
         // Sayfa yüklendiğinde hafızadaki temayı kontrol et
         if (currentTheme === 'light') {
             document.body.classList.add('light-mode');
-            themeToggleBtn.innerText = '🌙';
         }
 
         themeToggleBtn.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             
-            // Seçilen temayı hafızaya kaydet ve ikonu değiştir
+            // Seçilen temayı hafızaya kaydet
             if (document.body.classList.contains('light-mode')) {
                 localStorage.setItem('fatih_theme', 'light');
-                themeToggleBtn.innerText = '🌙';
             } else {
                 localStorage.setItem('fatih_theme', 'dark');
-                themeToggleBtn.innerText = '☀️';
             }
         });
 
