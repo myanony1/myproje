@@ -8,6 +8,9 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
     
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -16,7 +19,10 @@
             --bg-color: #121212;
             --panel-bg: #1e1e1e;
             --text-color: #ffffff;
-            --text-muted: #aaaaaa;
+            
+            /* Plyr Tema Rengini FatihSports Kırmızısı Yapıyoruz */
+            --plyr-color-main: #e50914; 
+            --plyr-video-background: #000000;
         }
 
         * {
@@ -35,7 +41,7 @@
             overflow: hidden;
         }
 
-        /* Üst Menü / Header */
+        /* Üst Menü */
         header {
             background-color: var(--panel-bg);
             padding: 15px 30px;
@@ -56,14 +62,14 @@
             color: var(--primary-color);
         }
 
-        /* Ana İçerik Alanı */
+        /* Ana İçerik */
         .main-container {
             display: flex;
             flex: 1;
             overflow: hidden;
         }
 
-        /* Video Oynatıcı Alanı */
+        /* Video Alanı */
         .player-section {
             flex: 3;
             background-color: #000;
@@ -72,14 +78,21 @@
             position: relative;
         }
 
-        video {
+        #video-wrapper {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Sol Üst - Şu An Oynatılan Bilgisi */
+        /* Plyr oynatıcısının tam alana yayılması için */
+        .plyr {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Canlı Yayında Rozeti */
         .now-playing {
             position: absolute;
             top: 20px;
@@ -93,7 +106,7 @@
             align-items: center;
             gap: 10px;
             pointer-events: none;
-            z-index: 2;
+            z-index: 10; /* Oynatıcının üstünde dursun */
         }
 
         .live-indicator {
@@ -110,34 +123,7 @@
             100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0); }
         }
 
-        /* Sağ Üst - Araç Çubuğu (Kalite ve Tam Ekran) */
-        .toolbar {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 2;
-        }
-
-        .toolbar select, .toolbar button {
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: 1px solid #444;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            outline: none;
-            transition: all 0.3s;
-        }
-
-        .toolbar select:hover, .toolbar button:hover {
-            background: rgba(229, 9, 20, 0.8);
-            border-color: var(--primary-color);
-        }
-
-        /* Kanal Listesi Alanı */
+        /* Kanal Listesi */
         .sidebar {
             flex: 1;
             background-color: var(--panel-bg);
@@ -161,9 +147,7 @@
             padding: 10px;
         }
 
-        .channel-list::-webkit-scrollbar {
-            width: 8px;
-        }
+        .channel-list::-webkit-scrollbar { width: 8px; }
         .channel-list::-webkit-scrollbar-thumb {
             background-color: #444;
             border-radius: 4px;
@@ -218,19 +202,14 @@
         }
 
         @media (max-width: 900px) {
-            .main-container {
-                flex-direction: column;
-            }
+            .main-container { flex-direction: column; }
             .sidebar {
                 max-width: 100%;
                 flex: 1;
                 border-left: none;
                 border-top: 1px solid #333;
             }
-            .player-section {
-                flex: none;
-                height: 40vh;
-            }
+            .player-section { flex: none; height: 40vh; }
         }
     </style>
 </head>
@@ -241,27 +220,20 @@
     </header>
 
     <div class="main-container">
-        <div class="player-section" id="player-container">
+        <div class="player-section">
             
             <div class="now-playing" id="now-playing-badge" style="display: none;">
                 <div class="live-indicator"></div>
                 <span id="current-channel-name">Kanal Seçilmedi</span>
             </div>
 
-            <div class="toolbar" id="toolbar" style="display: none;">
-                <select id="quality-selector">
-                    <option value="-1">Otomatik</option>
-                </select>
-                <button id="fullscreen-btn" onclick="toggleFullScreen()">Tam Ekran ⛶</button>
-            </div>
-
-            <video id="tv-player" controls autoplay></video>
+            <div id="video-wrapper">
+                </div>
+            
         </div>
 
         <div class="sidebar">
-            <div class="sidebar-header">
-                Kanal Listesi
-            </div>
+            <div class="sidebar-header">Kanal Listesi</div>
             <div class="channel-list" id="channel-list"></div>
         </div>
     </div>
@@ -289,48 +261,16 @@
             }
         ];
 
-        const video = document.getElementById('tv-player');
         const channelListContainer = document.getElementById('channel-list');
         const currentChannelNameEl = document.getElementById('current-channel-name');
         const nowPlayingBadge = document.getElementById('now-playing-badge');
-        const toolbar = document.getElementById('toolbar');
-        const qualitySelector = document.getElementById('quality-selector');
-        const playerContainer = document.getElementById('player-container');
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const videoWrapper = document.getElementById('video-wrapper');
         
-        // Player değişkenleri
+        // Player State
         let hlsPlayer = null;
         let dashPlayer = null;
+        let plyrInstance = null;
 
-        // Tam Ekran Fonksiyonu
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                if (playerContainer.requestFullscreen) {
-                    playerContainer.requestFullscreen();
-                } else if (playerContainer.webkitRequestFullscreen) { /* Safari */
-                    playerContainer.webkitRequestFullscreen();
-                } else if (playerContainer.msRequestFullscreen) { /* IE11 */
-                    playerContainer.msRequestFullscreen();
-                }
-                fullscreenBtn.innerText = "Küçült ✖";
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) { /* Safari */
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) { /* IE11 */
-                    document.msExitFullscreen();
-                }
-                fullscreenBtn.innerText = "Tam Ekran ⛶";
-            }
-        }
-
-        // ESC tuşu ile tam ekrandan çıkışta butonu güncelle
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) fullscreenBtn.innerText = "Tam Ekran ⛶";
-        });
-
-        // Kanalları Listeleme Fonksiyonu
         function renderChannels() {
             channelListContainer.innerHTML = ''; 
 
@@ -361,111 +301,91 @@
             });
         }
 
-        // Önceki oynatıcıları temizleme fonksiyonu
-        function destroyPlayers() {
+        // Plyr kalitesini HLS ile senkronize etme fonksiyonu
+        function updateQuality(newQuality) {
             if (hlsPlayer) {
-                hlsPlayer.destroy();
-                hlsPlayer = null;
+                if (newQuality === 0) {
+                    hlsPlayer.currentLevel = -1; // Otomatik
+                } else {
+                    hlsPlayer.levels.forEach((level, levelIndex) => {
+                        if (level.height === newQuality) {
+                            hlsPlayer.currentLevel = levelIndex;
+                        }
+                    });
+                }
             }
-            if (dashPlayer) {
-                dashPlayer.destroy();
-                dashPlayer = null;
-            }
-            video.pause();
-            video.removeAttribute('src');
-            video.load();
-            
-            // Kalite seçiciyi sıfırla
-            qualitySelector.innerHTML = '<option value="-1">Otomatik</option>';
-            qualitySelector.style.display = 'none'; // Çözünürlükler yüklenene kadar gizle
         }
 
-        // Kanal Oynatma Fonksiyonu
         function playChannel(channel, buttonElement) {
+            // UI Güncellemeleri
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             if(buttonElement) buttonElement.classList.add('active');
 
             currentChannelNameEl.innerText = channel.name;
             nowPlayingBadge.style.display = 'flex';
-            toolbar.style.display = 'flex';
 
-            destroyPlayers();
+            // Önceki motorları ve Plyr'ı tamamen temizle
+            if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
+            if (dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
+            if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
+
+            // Her kanal değişiminde temiz bir video etiketi oluşturuyoruz
+            videoWrapper.innerHTML = '<video id="tv-player" controls crossorigin playsinline></video>';
+            const video = document.getElementById('tv-player');
 
             const url = channel.url.toLowerCase();
 
-            // DASH (.mpd) Yayınları İçin
-            if (url.includes('.mpd')) {
-                if (typeof dashjs !== 'undefined') {
-                    dashPlayer = dashjs.MediaPlayer().create();
-                    dashPlayer.initialize(video, channel.url, true);
-                    
-                    // Kalite Seviyelerini Çek (DASH)
-                    dashPlayer.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, function () {
-                        const bitrates = dashPlayer.getBitrateInfoListFor("video");
-                        if (bitrates.length > 1) {
-                            qualitySelector.style.display = 'inline-block';
-                            bitrates.forEach((bitrate, index) => {
-                                const option = document.createElement('option');
-                                option.value = index;
-                                option.text = `${bitrate.height}p`;
-                                qualitySelector.appendChild(option);
-                            });
-                        }
-                    });
+            // Standart Plyr Ayarları
+            const plyrOptions = {
+                controls: ['play-large', 'play', 'live', 'mute', 'volume', 'settings', 'pip', 'airplay', 'fullscreen'],
+                i18n: { qualityLabel: { 0: 'Otomatik' } }
+            };
 
-                    // DASH Kalite Değişimi
-                    qualitySelector.onchange = (e) => {
-                        const val = parseInt(e.target.value);
-                        if (val === -1) {
-                            dashPlayer.updateSettings({ streaming: { abr: { autoSwitchBitrate: { video: true } } } });
-                        } else {
-                            dashPlayer.updateSettings({ streaming: { abr: { autoSwitchBitrate: { video: false } } } });
-                            dashPlayer.setQualityFor("video", val);
-                        }
-                    };
-
-                } else {
-                    alert("Tarayıcınız DASH oynatmayı desteklemiyor.");
-                }
-            } 
-            // HLS (.m3u8) Yayınları İçin
-            else if (url.includes('.m3u8')) {
+            // HLS (.m3u8) Yayınları
+            if (url.includes('.m3u8')) {
                 if (Hls.isSupported()) {
                     hlsPlayer = new Hls();
                     hlsPlayer.loadSource(channel.url);
                     hlsPlayer.attachMedia(video);
+                    
                     hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
-                        video.play().catch(e => console.log("Otomatik oynatma engellendi."));
+                        // Çözünürlükleri al ve Plyr menüsüne entegre et
+                        const availableQualities = hlsPlayer.levels.map((l) => l.height);
+                        availableQualities.unshift(0); // 0 = Otomatik Seçeneği
                         
-                        // Kalite Seviyelerini Çek (HLS)
-                        const levels = hlsPlayer.levels;
-                        if (levels.length > 1) {
-                            qualitySelector.style.display = 'inline-block';
-                            levels.forEach((level, index) => {
-                                const option = document.createElement('option');
-                                option.value = index;
-                                option.text = `${level.height}p`;
-                                qualitySelector.appendChild(option);
-                            });
-                        }
+                        plyrOptions.quality = {
+                            default: 0,
+                            options: availableQualities,
+                            forced: true,
+                            onChange: (e) => updateQuality(e)
+                        };
+
+                        plyrInstance = new Plyr(video, plyrOptions);
+                        plyrInstance.play().catch(() => console.log("Otomatik oynatma tarayıcı tarafından engellendi."));
                     });
-
-                    // HLS Kalite Değişimi
-                    qualitySelector.onchange = (e) => {
-                        hlsPlayer.currentLevel = parseInt(e.target.value);
-                    };
-
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    // Safari gibi yerel HLS destekleyen tarayıcılar (Manuel kalite seçimi genelde Safari'de desteklenmez)
+                    // Safari gibi Native HLS destekleyenler
                     video.src = channel.url;
-                    video.addEventListener('loadedmetadata', function () {
-                        video.play();
+                    plyrInstance = new Plyr(video, plyrOptions);
+                    video.addEventListener('loadedmetadata', () => {
+                        plyrInstance.play().catch(() => {});
                     });
                 } else {
                     alert("Tarayıcınız HLS video formatını desteklemiyor.");
                 }
+            } 
+            // DASH (.mpd) Yayınları
+            else if (url.includes('.mpd')) {
+                if (typeof dashjs !== 'undefined') {
+                    dashPlayer = dashjs.MediaPlayer().create();
+                    dashPlayer.initialize(video, channel.url, true);
+                    
+                    plyrInstance = new Plyr(video, plyrOptions);
+                } else {
+                    alert("Tarayıcınız DASH oynatmayı desteklemiyor.");
+                }
             } else {
-                alert("Desteklenmeyen video formatı. Lütfen m3u8 veya mpd kullanın.");
+                alert("Desteklenmeyen video formatı.");
             }
         }
 
