@@ -124,27 +124,31 @@
         }
 
         /* Kanal Listesi */
-        .sidebar {
-            flex: 1;
-            background-color: var(--panel-bg);
-            min-width: 300px;
-            max-width: 400px;
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid #333;
-        }
+        /* Kanal Listesi Kapsayıcısı */
+.sidebar {
+    flex: 1;
+    background-color: var(--panel-bg);
+    min-width: 300px;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #333;
+    overflow: hidden; /* EKLENDİ: Sidebar'ın ekran dışına taşmasını engeller */
+}
+
+/* Kaydırılabilir Liste Alanı */
+.channel-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    min-height: 0; /* EKLENDİ: Flexbox içinde scroll'un çalışmasını zorunlu kılar */
+}
 
         .sidebar-header {
             padding: 20px;
             border-bottom: 1px solid #333;
             font-weight: 600;
             font-size: 18px;
-        }
-
-        .channel-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
         }
 
         .channel-list::-webkit-scrollbar { width: 8px; }
