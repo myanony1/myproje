@@ -144,7 +144,20 @@
             transition: background-color 0.3s ease;
         }
 
-        .sidebar-header { padding: 20px; font-weight: 600; font-size: 18px; flex-shrink: 0; }
+        .sidebar-header { padding: 20px 20px 10px 20px; font-weight: 600; font-size: 18px; flex-shrink: 0; }
+
+        /* ARAMA ÇUBUĞU STİLLERİ */
+        .search-container {
+            padding: 0 20px 15px 20px;
+            flex-shrink: 0;
+        }
+        .search-input {
+            width: 100%; padding: 10px 15px; border-radius: 6px;
+            border: 1px solid #444; background-color: #222; color: #fff;
+            outline: none; transition: border-color 0.3s; font-size: 14px;
+        }
+        .search-input:focus { border-color: var(--primary-color); }
+        body.light-mode .search-input { background-color: #f0f0f0; border-color: #ccc; color: #333; }
 
         .category-tabs {
             display: flex; padding: 0 20px 15px 20px; gap: 8px;
@@ -252,6 +265,10 @@
         <div class="sidebar">
             <div class="sidebar-header">Kanal Listesi</div>
             
+            <div class="search-container">
+                <input type="text" id="channel-search" class="search-input" placeholder="Kanal ara...">
+            </div>
+            
             <div class="category-tabs">
                 <button class="tab-btn spor active" onclick="setCategory('Spor')">Spor</button>
                 <button class="tab-btn ulusal" onclick="setCategory('Ulusal')">Ulusal</button>
@@ -288,8 +305,9 @@
 
         let currentCategory = 'Spor';
         let currentActiveChannelObj = null; 
+        let currentVisibleChannels = []; // Ekranda o an listelenen kanalları tutar (Zapping için)
         let favoriteChannels = JSON.parse(localStorage.getItem('fatih_favorites')) || [];
-        let forceHideLoaderTimeout = null; // Zamanlayıcı değişkeni
+        let forceHideLoaderTimeout = null; 
 
         const channelListContainer = document.getElementById('channel-list');
         const currentChannelNameEl = document.getElementById('current-channel-name');
@@ -297,13 +315,20 @@
         const videoWrapper = document.getElementById('video-wrapper');
         const loaderOverlay = document.getElementById('loader-overlay');
         const errorOverlay = document.getElementById('error-overlay');
+        const searchInput = document.getElementById('channel-search');
         
         let hlsPlayer = null;
         let dashPlayer = null;
         let plyrInstance = null;
 
+        // ARAMA DİNLEYİCİSİ
+        searchInput.addEventListener('input', () => {
+            renderChannels(searchInput.value.toLowerCase());
+        });
+
         function setCategory(categoryName) {
             currentCategory = categoryName;
+            searchInput.value = ''; // Kategori değişince aramayı sıfırla
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`.tab-btn.${categoryName.toLowerCase()}`).classList.add('active');
             renderChannels();
@@ -319,22 +344,34 @@
             }
             
             localStorage.setItem('fatih_favorites', JSON.stringify(favoriteChannels));
-            renderChannels(); 
+            renderChannels(searchInput.value.toLowerCase()); 
         }
 
-        function renderChannels() {
+        function renderChannels(searchTerm = '') {
             channelListContainer.innerHTML = ''; 
-
             let filteredChannels = [];
             
+            // Kategoriye göre filtrele
             if (currentCategory === 'Favoriler') {
                 filteredChannels = channels.filter(c => favoriteChannels.includes(c.name));
-                if (filteredChannels.length === 0) {
-                    channelListContainer.innerHTML = '<div class="empty-fav">Henüz favorilere eklediğiniz bir kanal yok.<br><br>Kanalların yanındaki yıldıza basarak ekleyebilirsiniz.</div>';
-                    return;
-                }
             } else {
                 filteredChannels = channels.filter(c => c.category === currentCategory);
+            }
+
+            // Arama terimine göre filtrele
+            if (searchTerm) {
+                filteredChannels = filteredChannels.filter(c => c.name.toLowerCase().includes(searchTerm));
+            }
+
+            // Görünen kanalları global değişkene ata (Zapping için lazım)
+            currentVisibleChannels = filteredChannels;
+
+            if (filteredChannels.length === 0) {
+                const message = currentCategory === 'Favoriler' && !searchTerm ? 
+                    'Henüz favorilere eklediğiniz bir kanal yok.<br><br>Kanalların yanındaki yıldıza basarak ekleyebilirsiniz.' : 
+                    'Aramanıza uygun kanal bulunamadı.';
+                channelListContainer.innerHTML = `<div class="empty-fav">${message}</div>`;
+                return;
             }
 
             filteredChannels.forEach((channel) => {
@@ -359,21 +396,52 @@
             });
         }
 
+        // KLAVYE İLE ZAPPING (Aşağı/Yukarı Tuşları)
+        document.addEventListener('keydown', (e) => {
+            // Eğer arama kutusuna yazı yazıyorsa zapping yapma
+            if (document.activeElement === searchInput) return;
+
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault(); // Sayfanın aşağı/yukarı kaymasını engeller
+                
+                if (currentVisibleChannels.length === 0) return;
+                
+                let currentIndex = currentVisibleChannels.findIndex(c => c.name === currentActiveChannelObj?.name);
+                if (currentIndex === -1) currentIndex = 0;
+
+                if (e.key === 'ArrowDown') {
+                    currentIndex++;
+                    if (currentIndex >= currentVisibleChannels.length) currentIndex = 0; // Başa dön
+                } else if (e.key === 'ArrowUp') {
+                    currentIndex--;
+                    if (currentIndex < 0) currentIndex = currentVisibleChannels.length - 1; // Sona git
+                }
+
+                playChannel(currentVisibleChannels[currentIndex]);
+                
+                // Aktif butonu menüde görünecek şekilde kaydır (Scroll)
+                setTimeout(() => {
+                    const activeBtn = document.querySelector('.channel-btn.active');
+                    if (activeBtn) {
+                        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }, 100);
+            }
+        });
+
         function retryStream() {
             if(currentActiveChannelObj) {
                 playChannel(currentActiveChannelObj);
             }
         }
 
-        // VİDEO OYNATMA BAŞLATICI FONKSİYON (ENGEL YAKALAYICI)
         function startSmartPlayback() {
             if (!plyrInstance) return;
             const playPromise = plyrInstance.play();
             
             if (playPromise !== undefined) {
                 playPromise.catch((error) => {
-                    // Tarayıcı otomatik oynamayı engellediğinde loader'ı gizle!
-                    console.log("Otomatik oynatma tarayıcı tarafından engellendi. Kullanıcı etkileşimi bekleniyor.");
+                    console.log("Otomatik oynatma tarayıcı tarafından engellendi.");
                     loaderOverlay.style.display = 'none';
                     if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
                 });
@@ -385,7 +453,7 @@
             
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             if(buttonElement) buttonElement.classList.add('active');
-            else renderChannels(); 
+            else renderChannels(searchInput.value.toLowerCase()); 
 
             currentChannelNameEl.innerText = channel.name;
             nowPlayingBadge.style.display = 'flex';
@@ -393,7 +461,6 @@
             loaderOverlay.style.display = 'flex';
             errorOverlay.style.display = 'none';
 
-            // ZAMAN AŞIMI GÜVENLİĞİ: Ne olursa olsun 10 saniye sonra loadingi gizle.
             if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
             forceHideLoaderTimeout = setTimeout(() => {
                 if(loaderOverlay.style.display === 'flex') {
@@ -408,13 +475,11 @@
             videoWrapper.innerHTML = '<video id="tv-player" controls crossorigin playsinline></video>';
             const video = document.getElementById('tv-player');
 
-            // Video gerçekten oynamaya başladığında loader'ı kapat
             video.addEventListener('playing', () => {
                 loaderOverlay.style.display = 'none';
                 if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
             });
 
-            // Gerçek bir hata oluştuğunda
             video.addEventListener('error', () => {
                 loaderOverlay.style.display = 'none';
                 errorOverlay.style.display = 'flex';
@@ -464,8 +529,6 @@
                             }
                         };
                         plyrInstance = new Plyr(video, plyrOptions);
-                        
-                        // Akıllı oynatmayı başlat
                         startSmartPlayback();
                     });
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -483,7 +546,7 @@
                         errorOverlay.style.display = 'flex';
                     });
 
-                    dashPlayer.initialize(video, channel.url, false); // Otomatik oynamayı kapat, Plyr üzerinden başlatalım
+                    dashPlayer.initialize(video, channel.url, false);
                     plyrInstance = new Plyr(video, plyrOptions);
                     
                     plyrInstance.on('ready', () => {
