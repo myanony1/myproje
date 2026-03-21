@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FatihSports | HD</title>
+    <title>FatihSports | Canlı</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000000'/><text x='50%25' y='50%25' font-family='Poppins, sans-serif' font-weight='bold' font-size='70' fill='%23e50914' dominant-baseline='central' text-anchor='middle'>F</text></svg>">
     
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -42,15 +42,15 @@
         }
 
         body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;         /* Eski tarayıcılar için yedek */
-    height: 100dvh;        /* YENİ EKLENEN: Mobil adres çubuğu alanını hesaba katar */
-    overflow: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;         
+            height: 100dvh;        
+            overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
 
         header {
             background-color: var(--panel-bg);
@@ -61,6 +61,24 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             z-index: 10;
             transition: background-color 0.3s ease;
+        }
+
+        /* EKLENEN LOGO VE MARKA ALANI KODLARI */
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        
+        .brand-container:hover .brand-logo {
+            transform: scale(1.1);
         }
 
         header h1 { font-size: 24px; font-weight: 700; letter-spacing: 1px; }
@@ -92,20 +110,18 @@
             align-items: center; justify-content: center; position: relative;
         }
 
-                /* Player ve videonun kenar boşluksuz tam oturması için */
         .plyr { 
             width: 100%; 
             height: 100%; 
         }
 
         .plyr__video-wrapper,  
-.plyr__video-wrapper video {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain !important; /* 'cover' yerine 'contain' yaparak yayının tamamını sığdırıyoruz */
-    background: #000; /* Kenarlarda kalan boşluklar siyah olsun */
-}
-
+        .plyr__video-wrapper video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important; 
+            background: #000; 
+        }
 
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -161,7 +177,6 @@
 
         .sidebar-header { padding: 20px 20px 10px 20px; font-weight: 600; font-size: 18px; flex-shrink: 0; }
 
-        /* ARAMA ÇUBUĞU STİLLERİ */
         .search-container {
             padding: 0 20px 15px 20px;
             flex-shrink: 0;
@@ -192,14 +207,11 @@
         .tab-btn.ulusal.active { background-color: var(--ulusal-color); color: #fff; }
         .tab-btn.favoriler.active { background-color: var(--fav-color); color: #fff; }
 
-        /* Eski Hali: */
-/* .channel-list { padding: 10px 15px 20px 15px; } */
-
-.channel-list { 
-    padding: 10px 15px 80px 15px; 
-    overflow-y: auto; /* Dikey kaydırmayı aktifleştirir */
-    flex: 1;          /* Sidebar içindeki kalan tüm boş alanı kaplamasını sağlar */
-}
+        .channel-list { 
+            padding: 10px 15px 80px 15px; 
+            overflow-y: auto; 
+            flex: 1;         
+        }
 
         .channel-list::-webkit-scrollbar { width: 8px; }
         .channel-list::-webkit-scrollbar-thumb { background-color: #444; border-radius: 4px; }
@@ -235,26 +247,18 @@
 
         .empty-fav { text-align: center; padding: 20px; color: #888; font-size: 14px; }
 
-                /* MOBİL VE TABLET OPTİMİZASYONU */
         @media (max-width: 900px) {
-            /* Üst menüyü (Header) daraltarak ekranda yer kazanıyoruz */
-            header { 
-                padding: 10px 15px; 
-            }
-            header h1 { 
-                font-size: 20px; 
-            }
-
-            .main-container { 
-                flex-direction: column; 
-            }
+            header { padding: 10px 15px; }
+            header h1 { font-size: 20px; }
+            .brand-logo { width: 28px; height: 28px; } /* Mobilde logoyu biraz küçültelim */
             
-            /* Player alanı mobilde kusursuz 16:9 video oranına (TV formatı) oturur */
+            .main-container { flex-direction: column; }
+            
             .player-section { 
                 flex: none; 
                 width: 100%;
                 height: auto;
-                aspect-ratio: 16 / 9; /* Videonun orijinal oranını korur, boşlukları yok eder */
+                aspect-ratio: 16 / 9; 
             }
 
             .sidebar { 
@@ -262,29 +266,32 @@
                 flex: 1; 
                 border-left: none; 
                 border-top: 2px solid var(--primary-color); 
-                min-height: 0; /* BUNU EKLİYORUZ: Kutu boyunu ekrana sabitler ve scroll'u geri getirir */
+                min-height: 0; 
             }
 
-            /* Mobilde butonlar, arama çubuğu ve liste boşluklarını daha kompakt hale getiriyoruz */
             .sidebar-header { padding: 12px 15px 8px 15px; font-size: 16px; }
             .search-container { padding: 0 15px 10px 15px; }
             .category-tabs { padding: 0 15px 10px 15px; }
             .channel-list { padding: 10px 15px 20px 15px; }
             
-            /* Kanal butonlarını mobilde parmakla basmaya daha uygun hale getirelim */
             .channel-btn {
                 padding: 12px 15px; 
                 margin-bottom: 6px;
             }
-        }
-
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Fatih<span>Sports</span></h1>
+        <div class="brand-container">
+            <svg class="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100" height="100" rx="25" fill="#e50914"/>
+                <polygon points="40,28 40,72 75,50" fill="#ffffff"/>
+            </svg>
+            <h1>Fatih<span>Sports</span></h1>
+        </div>
+        
         <button id="theme-toggle" class="theme-toggle-btn" aria-label="Temayı Değiştir">
             <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="5"></circle>
@@ -622,24 +629,21 @@
         }
 
         // TAM EKRAN DÖNGÜSÜ VE OTOMATİK YATAY MOD
-document.addEventListener('fullscreenchange', () => {
-    if (document.fullscreenElement) {
-        // Tam ekrana girildiğinde: Eğer mobilse yatay yapmaya çalış
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(err => {
-                console.log("Ekran kilitleme desteklenmiyor veya engellendi.");
-            });
-        }
-    } else {
-        // Tam ekrandan çıkıldığında: Kilidi kaldır (Dikeye geri döner)
-        if (screen.orientation && screen.orientation.unlock) {
-            screen.orientation.unlock();
-        }
-    }
-});
-
-// Plyr instance'ı oluştuğunda bu kontrolü tetiklemek için 
-// plyrInstance.on('enterfullscreen', ...) yapısı da kullanılabilir.
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                // Tam ekrana girildiğinde: Eğer mobilse yatay yapmaya çalış
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => {
+                        console.log("Ekran kilitleme desteklenmiyor veya engellendi.");
+                    });
+                }
+            } else {
+                // Tam ekrandan çıkıldığında: Kilidi kaldır (Dikeye geri döner)
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            }
+        });
 
         window.onload = () => {
             renderChannels();
