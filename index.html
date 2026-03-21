@@ -238,21 +238,21 @@
         body.light-mode .channel-list::-webkit-scrollbar-thumb { background-color: #bbb; }
 
         .channel-btn {
-            width: 100%; 
-            background-color: rgba(255, 255, 255, 0.03); 
-            border: 1px solid rgba(255, 255, 255, 0.05); 
-            color: var(--text-color);
-            padding: 12px 15px; 
-            text-align: left;
-            font-size: 15px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            transition: all 0.3s ease;
-            display: flex; 
-            align-items: center; 
-            gap: 12px;
-            flex-shrink: 0;
-        }
+    width: 100%; 
+    background-color: rgba(255, 255, 255, 0.03); 
+    border: 1px solid rgba(255, 255, 255, 0.05); 
+    color: var(--text-color);
+    padding: 16px 20px; /* Eskisi: 12px 15px - Daha ferah görünüm için artırıldı */
+    text-align: left;
+    font-size: 17px; /* Eskisi: 15px - Metin boyutu artırıldı */
+    border-radius: 10px; /* Biraz daha yumuşak köşeler eklendi */
+    cursor: pointer; 
+    transition: all 0.3s ease;
+    display: flex; 
+    align-items: center; 
+    gap: 15px; /* Eskisi: 12px - İkon ile metin arası açıldı */
+    flex-shrink: 0;
+}
 
         .channel-btn:hover { background-color: #333; transform: translateX(5px); }
         .channel-btn.active { background-color: #444; font-weight: 600; border-color: rgba(255, 255, 255, 0.15); }
@@ -261,7 +261,13 @@
         body.light-mode .channel-btn:hover { background-color: #f8f9fa; }
         body.light-mode .channel-btn.active { background-color: #e9ecef; border-color: #ced4da; }
 
-        .channel-icon-tv { width: 24px; height: 24px; flex-shrink: 0; stroke: var(--text-color); transition: stroke 0.3s ease; }
+        .channel-icon-tv { 
+    width: 28px; /* Eskisi: 24px - TV ikonu büyütüldü */
+    height: 28px; 
+    flex-shrink: 0; 
+    stroke: var(--text-color); 
+    transition: stroke 0.3s ease; 
+}
         .channel-btn.active .channel-icon-tv { stroke: var(--primary-color); }
         body.light-mode .channel-icon-tv { stroke: var(--text-color); }
 
@@ -390,7 +396,7 @@
             .category-tabs { padding: 0 15px 10px 15px; }
             .tab-btn { padding: 6px; font-size: 12px; }
             .channel-list { padding: 5px 10px 10px 10px; gap: 4px;}
-            .channel-btn { padding: 10px 12px; font-size: 14px; }
+            .channel-btn { padding: 14px 16px; font-size: 16px; }
 
             .now-playing {
                 top: 10px; left: 10px;
