@@ -63,10 +63,14 @@
             transition: background-color 0.3s ease;
         }
 
+        /* YENİ: Link haline getirilen logoyu stillendirme */
         .brand-container {
             display: flex;
             align-items: center;
             gap: 12px;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
         }
 
         .brand-logo {
@@ -249,7 +253,6 @@
         body.light-mode .channel-btn:hover { background-color: #f0f0f0; }
         body.light-mode .channel-btn.active { background-color: #e5e5e5; }
 
-        /* YENİ TV İKONU TASARIMI */
         .channel-icon-tv {
             width: 24px;
             height: 24px;
@@ -262,6 +265,21 @@
         }
         body.light-mode .channel-icon-tv {
             stroke: var(--text-color);
+        }
+
+        /* YENİ: Şık HD Rozeti CSS'i */
+        .hd-badge {
+            background: linear-gradient(45deg, #e50914, #ff4b2b);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 5px rgba(229, 9, 20, 0.4);
+            margin-left: 6px;
+            display: inline-block;
+            vertical-align: middle;
         }
 
         .fav-star {
@@ -311,13 +329,13 @@
 <body>
 
     <header>
-        <div class="brand-container">
+        <a href="/" class="brand-container">
             <svg class="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <rect width="100" height="100" rx="25" fill="#e50914"/>
                 <polygon points="40,28 40,72 75,50" fill="#ffffff"/>
             </svg>
             <h1>Fatih<span>Sports</span></h1>
-        </div>
+        </a>
         
         <button id="theme-toggle" class="theme-toggle-btn" aria-label="Temayı Değiştir">
             <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -428,7 +446,7 @@
 
         function setCategory(categoryName) {
             currentCategory = categoryName;
-            searchInput.value = ''; // Kategori değişince aramayı sıfırla
+            searchInput.value = ''; 
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`.tab-btn.${categoryName.toLowerCase()}`).classList.add('active');
             renderChannels();
@@ -451,19 +469,16 @@
             channelListContainer.innerHTML = ''; 
             let filteredChannels = [];
             
-            // Kategoriye göre filtrele
             if (currentCategory === 'Favoriler') {
                 filteredChannels = channels.filter(c => favoriteChannels.includes(c.name));
             } else {
                 filteredChannels = channels.filter(c => c.category === currentCategory);
             }
 
-            // Arama terimine göre filtrele
             if (searchTerm) {
                 filteredChannels = filteredChannels.filter(c => c.name.toLowerCase().includes(searchTerm));
             }
 
-            // Görünen kanalları global değişkene ata (Zapping için lazım)
             currentVisibleChannels = filteredChannels;
 
             if (filteredChannels.length === 0) {
@@ -482,13 +497,23 @@
                 
                 button.onclick = () => playChannel(channel, button);
 
-                // YENİ TV İKONU
+                // YENİ: HD Rozetini ekliyoruz. İsimde zaten "HD" varsa onu silip rozeti yanına ekliyoruz.
+                let displayName = channel.name;
+                let hasHD = false;
+                
+                if (displayName.includes(' HD')) {
+                    displayName = displayName.replace(' HD', '');
+                    hasHD = true;
+                }
+
                 button.innerHTML = `
                     <svg class="channel-icon-tv" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
                         <polyline points="17 2 12 7 7 2"></polyline>
                     </svg>
-                    <span>${channel.name}</span>
+                    <span style="flex: 1; display: flex; align-items: center;">
+                        ${displayName} ${hasHD ? '<span class="hd-badge">HD</span>' : ''}
+                    </span>
                     <span class="fav-star ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${channel.name}')">★</span>
                 `;
 
@@ -496,13 +521,11 @@
             });
         }
 
-        // KLAVYE İLE ZAPPING (Aşağı/Yukarı Tuşları)
         document.addEventListener('keydown', (e) => {
-            // Eğer arama kutusuna yazı yazıyorsa zapping yapma
             if (document.activeElement === searchInput) return;
 
             if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                e.preventDefault(); // Sayfanın aşağı/yukarı kaymasını engeller
+                e.preventDefault(); 
                 
                 if (currentVisibleChannels.length === 0) return;
                 
@@ -511,15 +534,14 @@
 
                 if (e.key === 'ArrowDown') {
                     currentIndex++;
-                    if (currentIndex >= currentVisibleChannels.length) currentIndex = 0; // Başa dön
+                    if (currentIndex >= currentVisibleChannels.length) currentIndex = 0; 
                 } else if (e.key === 'ArrowUp') {
                     currentIndex--;
-                    if (currentIndex < 0) currentIndex = currentVisibleChannels.length - 1; // Sona git
+                    if (currentIndex < 0) currentIndex = currentVisibleChannels.length - 1; 
                 }
 
                 playChannel(currentVisibleChannels[currentIndex]);
                 
-                // Aktif butonu menüde görünecek şekilde kaydır (Scroll)
                 setTimeout(() => {
                     const activeBtn = document.querySelector('.channel-btn.active');
                     if (activeBtn) {
@@ -656,28 +678,23 @@
             }
         }
 
-        // TAM EKRAN DÖNGÜSÜ VE OTOMATİK YATAY MOD
         document.addEventListener('fullscreenchange', () => {
             if (document.fullscreenElement) {
-                // Tam ekrana girildiğinde: Eğer mobilse yatay yapmaya çalış
                 if (screen.orientation && screen.orientation.lock) {
                     screen.orientation.lock('landscape').catch(err => {
                         console.log("Ekran kilitleme desteklenmiyor veya engellendi.");
                     });
                 }
             } else {
-                // Tam ekrandan çıkıldığında: Kilidi kaldır (Dikeye geri döner)
                 if (screen.orientation && screen.orientation.unlock) {
                     screen.orientation.unlock();
                 }
             }
         });
 
-        // EKLENEN YENİ KISIM: Sayfa yüklendiğinde artık otomatik oynatma yapmıyoruz.
         window.onload = () => {
             renderChannels();
             
-            // Video alanına başlangıç mesajını ekliyoruz
             videoWrapper.innerHTML = `
                 <div class="initial-message">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
