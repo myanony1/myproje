@@ -96,13 +96,13 @@
             height: 100%; 
         }
 
-        .plyr__video-wrapper, 
-        .plyr__video-wrapper video {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important; /* Görüntüyü kırparak boşluksuz tam sığdırır */
-            border-radius: 0 !important;
-        }
+        .plyr__video-wrapper,  
+.plyr__video-wrapper video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important; /* 'cover' yerine 'contain' yaparak yayının tamamını sığdırıyoruz */
+    background: #000; /* Kenarlarda kalan boşluklar siyah olsun */
+}
 
 
         .overlay-screen {
@@ -606,6 +606,26 @@
                 }
             }
         }
+
+        // TAM EKRAN DÖNGÜSÜ VE OTOMATİK YATAY MOD
+document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+        // Tam ekrana girildiğinde: Eğer mobilse yatay yapmaya çalış
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(err => {
+                console.log("Ekran kilitleme desteklenmiyor veya engellendi.");
+            });
+        }
+    } else {
+        // Tam ekrandan çıkıldığında: Kilidi kaldır (Dikeye geri döner)
+        if (screen.orientation && screen.orientation.unlock) {
+            screen.orientation.unlock();
+        }
+    }
+});
+
+// Plyr instance'ı oluştuğunda bu kontrolü tetiklemek için 
+// plyrInstance.on('enterfullscreen', ...) yapısı da kullanılabilir.
 
         window.onload = () => {
             renderChannels();
