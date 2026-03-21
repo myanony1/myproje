@@ -314,11 +314,28 @@
                 min-height: 0; 
             }
 
-            .sidebar-header { padding: 12px 15px 8px 15px; font-size: 16px; }
-            .search-container { padding: 0 15px 10px 15px; }
-            .category-tabs { padding: 0 15px 10px 15px; }
-            .channel-list { padding: 10px 15px 20px 15px; }
-            
+            .sidebar-header { 
+    padding: 20px 20px 10px 20px; 
+    font-weight: 600; 
+    font-size: 18px; 
+    flex-shrink: 0; 
+    display: flex; 
+    justify-content: space-between; /* Yazı solda, rozet sağda */
+    align-items: center; 
+}
+
+.channel-count-badge {
+    background: linear-gradient(45deg, #00b09b, #96c93d); /* Şık yeşil gradyan */
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 176, 155, 0.4);
+    letter-spacing: 0.5px;
+}
+
+
             .channel-btn {
                 padding: 12px 15px; 
                 margin-bottom: 6px;
@@ -373,8 +390,10 @@
             
         </div>
 
-        <div class="sidebar">
-            <div class="sidebar-header">Kanal Listesi</div>
+        <div class="sidebar-header">
+    <span>Kanal Listesi</span>
+    <span id="channel-count-badge" class="channel-count-badge"></span>
+</div>
             
             <div class="search-container">
                 <input type="text" id="channel-search" class="search-input" placeholder="Kanal ara...">
@@ -480,6 +499,9 @@
             }
 
             currentVisibleChannels = filteredChannels;
+
+document.getElementById('channel-count-badge').innerText = currentVisibleChannels.length;
+
 
             if (filteredChannels.length === 0) {
                 const message = currentCategory === 'Favoriler' && !searchTerm ? 
