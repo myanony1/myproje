@@ -61,7 +61,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             z-index: 10;
             transition: background-color 0.3s ease;
-            flex-shrink: 0; /* Header'ın ezilmesini önler */
+            flex-shrink: 0;
         }
 
         .brand-container {
@@ -87,14 +87,21 @@
         header h1 { font-size: 24px; font-weight: 700; letter-spacing: 1px; }
         header h1 span { color: var(--primary-color); }
 
-        .theme-toggle-btn {
+        /* Sağ üstteki butonlar için yeni grup */
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-btn {
             background: none; border: none; cursor: pointer;
-            transition: transform 0.3s ease; display: flex;
+            transition: transform 0.3s ease, color 0.3s ease; display: flex;
             align-items: center; justify-content: center;
             color: var(--text-color);
         }
-        .theme-toggle-btn:hover { transform: scale(1.1); }
-        .theme-toggle-btn svg { width: 26px; height: 26px; transition: all 0.3s ease; }
+        .header-btn:hover { transform: scale(1.1); color: var(--primary-color); }
+        .header-btn svg { width: 26px; height: 26px; transition: all 0.3s ease; }
 
         #icon-moon { display: none; }
         #icon-sun { display: block; }
@@ -105,7 +112,7 @@
             display: flex; 
             flex: 1; 
             overflow: hidden; 
-            min-height: 0; /* Flex alt elemanlarının taşmasını engeller (Kritik) */
+            min-height: 0; 
         }
 
         .player-section {
@@ -297,6 +304,59 @@
         .toast.warning { border-left: 4px solid var(--primary-color); }
         body.light-mode .toast { background-color: #ffffff; color: #333; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
 
+        /* =============== MODAL (Açılır Pencere) STİLLERİ =============== */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: 99999; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-content {
+            background-color: var(--panel-bg); color: var(--text-color);
+            padding: 30px; border-radius: 16px; width: 90%; max-width: 380px;
+            position: relative; transform: translateY(30px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        body.light-mode .modal-content { box-shadow: 0 15px 40px rgba(0,0,0,0.15); }
+
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+
+        .close-modal-btn {
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(128, 128, 128, 0.2); border: none; color: var(--text-color);
+            width: 32px; height: 32px; border-radius: 50%;
+            font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.3s ease;
+        }
+        .close-modal-btn:hover { background: var(--primary-color); color: #fff; }
+
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+
+        .social-buttons { display: flex; flex-direction: column; gap: 12px; }
+
+        .social-btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 12px 20px; border-radius: 10px; text-decoration: none;
+            color: #fff; font-weight: 600; font-size: 15px;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        
+        .social-btn:hover { transform: translateY(-3px); filter: brightness(1.1); }
+        
+        .social-btn.telegram { background-color: #24A1DE; }
+        .social-btn.twitter { background-color: #000000; border: 1px solid rgba(255,255,255,0.2); }
+        
+        body.light-mode .social-btn.twitter { border: none; }
+        
+        .social-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
         /* =============== MOBİL UYUM (RESPONSIVE) =============== */
         @media (max-width: 900px) {
@@ -304,10 +364,13 @@
             header h1 { font-size: 20px; }
             .brand-logo { width: 28px; height: 28px; } 
             
+            .header-controls { gap: 10px; }
+            .header-btn svg { width: 22px; height: 22px; }
+
             .main-container { flex-direction: column; }
             
             .player-section { 
-                flex: 0 0 auto; /* Mobilde videonun ezilmemesi için flex'i kilitliyoruz */
+                flex: 0 0 auto;
                 width: 100%;
                 height: auto;
                 aspect-ratio: 16 / 9; 
@@ -318,10 +381,9 @@
                 flex: 1; 
                 border-left: none; 
                 border-top: 2px solid var(--primary-color); 
-                min-height: 0; /* İçerik taşmasını engeller */
+                min-height: 0; 
             }
 
-            /* Mobilde yer kazanmak için iç boşlukları (padding) daraltıyoruz */
             .sidebar-header { padding: 12px 15px 8px 15px; font-size: 16px; }
             .search-container { padding: 0 15px 10px 15px; }
             .search-input { padding: 8px 12px; font-size: 13px; }
@@ -339,7 +401,7 @@
 
             .toast-container {
                 bottom: 15px; left: 15px; right: 15px; 
-                align-items: center; /* Mobilde ortalı durması için */
+                align-items: center; 
             }
             .toast { width: 100%; justify-content: center; }
         }
@@ -356,18 +418,28 @@
             <h1>Fatih<span>Sports</span></h1>
         </a>
         
-        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Temayı Değiştir">
-            <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
-            <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-        </button>
+        <div class="header-controls">
+            <button id="info-btn" class="header-btn" aria-label="İletişim ve Bilgi">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+            </button>
+
+            <button id="theme-toggle" class="header-btn" aria-label="Temayı Değiştir">
+                <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
     </header>
 
     <div class="main-container">
@@ -414,6 +486,29 @@
         </div>
     </div>
 
+    <div id="info-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="close-modal" class="close-modal-btn">&times;</button>
+            <h2 class="modal-title">İletişimde Kalın</h2>
+            <p style="font-size: 14px; margin-bottom: 20px; opacity: 0.8;">Duyurular ve güncellemeler için sosyal medya hesaplarımızı takip edebilirsiniz.</p>
+            
+            <div class="social-buttons">
+                <a href="https://t.me/fatihsports" target="_blank" class="social-btn telegram">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.06-.2-.06-.05-.14-.03-.21-.02-.09.02-1.46.93-4.12 2.73-.39.27-.74.4-1.06.39-.35-.01-1.02-.2-1.52-.36-.61-.2-1.09-.31-1.05-.66.02-.18.27-.36.75-.55 2.93-1.28 4.88-2.12 5.86-2.53 2.79-1.16 3.37-1.36 3.75-1.37.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .28z"/>
+                    </svg>
+                    Telegram
+                </a>
+                <a href="https://x.com/fatihsports" target="_blank" class="social-btn twitter">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    X (Twitter)
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script>
         // TEMA YÖNETİMİ
         const themeToggleBtn = document.getElementById('theme-toggle');
@@ -422,6 +517,26 @@
         themeToggleBtn.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             localStorage.setItem('fatih_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        });
+
+        // MODAL (POPUP) YÖNETİMİ
+        const infoBtn = document.getElementById('info-btn');
+        const infoModal = document.getElementById('info-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+
+        infoBtn.addEventListener('click', () => {
+            infoModal.classList.add('active');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            infoModal.classList.remove('active');
+        });
+
+        // Dışarıya tıklanınca kapatma
+        infoModal.addEventListener('click', (e) => {
+            if (e.target === infoModal) {
+                infoModal.classList.remove('active');
+            }
         });
 
         // KANAL VERİLERİ 
