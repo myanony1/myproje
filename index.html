@@ -336,6 +336,51 @@
 }
 
 
+/* --- TOAST BİLDİRİMLERİ --- */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+    pointer-events: none; /* Tıklamaları engellememesi için */
+}
+
+.toast {
+    background-color: #2a2a2a;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateX(120%); /* Başlangıçta ekranın sağında saklı */
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s ease;
+}
+
+.toast.show {
+    transform: translateX(0); /* Ekrana giriş */
+    opacity: 1;
+}
+
+/* Duruma Göre Sol Kenarlık Renkleri */
+.toast.success { border-left: 4px solid var(--spor-color); }
+.toast.warning { border-left: 4px solid var(--primary-color); }
+
+/* Gündüz Modu Uyumu */
+body.light-mode .toast {
+    background-color: #ffffff;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+
             .channel-btn {
                 padding: 12px 15px; 
                 margin-bottom: 6px;
@@ -398,6 +443,8 @@
             <div class="search-container">
                 <input type="text" id="channel-search" class="search-input" placeholder="Kanal ara...">
             </div>
+
+<div id="toast-container" class="toast-container"></div>
             
             <div class="category-tabs">
                 <button class="tab-btn spor active" onclick="setCategory('Spor')">Spor</button>
@@ -410,6 +457,8 @@
     </div>
 
     <script>
+
+
         // TEMA YÖNETİMİ
         const themeToggleBtn = document.getElementById('theme-toggle');
         if (localStorage.getItem('fatih_theme') === 'light') document.body.classList.add('light-mode');
@@ -471,18 +520,47 @@
             renderChannels();
         }
 
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // İşleme göre ikon belirleme
+    const icon = type === 'success' ? '🌟' : '🗑️';
+    toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+    
+    container.appendChild(toast);
+
+    // Animasyonun çalışması için çok kısa bir gecikme
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+
+    // 3 saniye sonra kaybolma animasyonu
+    setTimeout(() => {
+        toast.classList.remove('show');
+        // Animasyon bitince HTML'den tamamen temizle
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
+
         function toggleFavorite(e, channelName) {
-            e.stopPropagation(); 
-            
-            if (favoriteChannels.includes(channelName)) {
-                favoriteChannels = favoriteChannels.filter(name => name !== channelName);
-            } else {
-                favoriteChannels.push(channelName);
-            }
-            
-            localStorage.setItem('fatih_favorites', JSON.stringify(favoriteChannels));
-            renderChannels(searchInput.value.toLowerCase()); 
-        }
+    e.stopPropagation(); 
+    
+    if (favoriteChannels.includes(channelName)) {
+        favoriteChannels = favoriteChannels.filter(name => name !== channelName);
+        showToast(`${channelName} favorilerden çıkarıldı.`, 'warning'); // YENİ EKLENEN SATIR
+    } else {
+        favoriteChannels.push(channelName);
+        showToast(`${channelName} favorilere eklendi!`, 'success'); // YENİ EKLENEN SATIR
+    }
+    
+    localStorage.setItem('fatih_favorites', JSON.stringify(favoriteChannels));
+    renderChannels(searchInput.value.toLowerCase()); 
+}
+
 
         function renderChannels(searchTerm = '') {
             channelListContainer.innerHTML = ''; 
