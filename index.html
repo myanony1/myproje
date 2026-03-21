@@ -387,18 +387,6 @@ body.light-mode .toast {
             }
         }
 
-/* --- AĞ DURUMU İKONU --- */
-.network-icon {
-    width: 18px;
-    height: 18px;
-    margin-left: 8px;
-    transition: stroke 0.3s ease;
-}
-
-.network-icon.good { stroke: #28a745; }    /* Yeşil - Sorunsuz Akıyor */
-.network-icon.warning { stroke: #f39c12; } /* Sarı - Buffer/Yükleniyor */
-.network-icon.poor { stroke: #dc3545; }    /* Kırmızı - Koptu/Hata */
-
     </style>
 </head>
 <body>
@@ -432,17 +420,8 @@ body.light-mode .toast {
             <div class="now-playing" id="now-playing-badge" style="display: none;">
     <div class="live-indicator"></div>
     <span id="current-channel-name">Kanal Seçilmedi</span>
-    <svg id="network-status-icon" class="network-icon good" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-        <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-        <line x1="12" y1="20" x2="12.01" y2="20"></line>
-    </svg>
 </div>
 
-                <div class="live-indicator"></div>
-                <span id="current-channel-name">Kanal Seçilmedi</span>
-            </div>
 
             <div id="loader-overlay" class="overlay-screen">
                 <div class="spinner"></div>
@@ -728,27 +707,19 @@ function updateNetworkStatus(status) {
             videoWrapper.innerHTML = '<video id="tv-player" controls crossorigin playsinline></video>';
 const video = document.getElementById('tv-player');
 
-// YENİ: Bağlantı Durumu Dinleyicileri (Mevcut kodları bununla değiştir/birleştir)
+
+
 video.addEventListener('playing', () => {
     loaderOverlay.style.display = 'none';
     if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
-    updateNetworkStatus('good'); // Video oynarken yeşil yap
-});
-
-video.addEventListener('waiting', () => {
-    updateNetworkStatus('warning'); // İnternet yavaşlayıp video donduğunda (buffer) sarı yap
-});
-
-video.addEventListener('stalled', () => {
-    updateNetworkStatus('poor'); // Veri akışı tamamen durduğunda kırmızı yap
 });
 
 video.addEventListener('error', () => {
     loaderOverlay.style.display = 'none';
     errorOverlay.style.display = 'flex';
     if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
-    updateNetworkStatus('poor'); // Hata verdiğinde kırmızı yap
 });
+ 
 
 
             const url = channel.url.toLowerCase();
