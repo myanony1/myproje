@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FatihSports | Canlı</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000000'/><text x='50%25' y='50%25' font-family='Poppins, sans-serif' font-weight='bold' font-size='70' fill='%23e50914' dominant-baseline='central' text-anchor='middle'>F</text></svg>">
     
@@ -61,9 +61,9 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             z-index: 10;
             transition: background-color 0.3s ease;
+            flex-shrink: 0; /* Header'ın ezilmesini önler */
         }
 
-        /* YENİ: Link haline getirilen logoyu stillendirme */
         .brand-container {
             display: flex;
             align-items: center;
@@ -101,7 +101,12 @@
         body.light-mode #icon-sun { display: none; }
         body.light-mode #icon-moon { display: block; }
 
-        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .main-container { 
+            display: flex; 
+            flex: 1; 
+            overflow: hidden; 
+            min-height: 0; /* Flex alt elemanlarının taşmasını engeller (Kritik) */
+        }
 
         .player-section {
             flex: 3; background-color: #000; display: flex;
@@ -113,10 +118,7 @@
             align-items: center; justify-content: center; position: relative;
         }
 
-        .plyr { 
-            width: 100%; 
-            height: 100%; 
-        }
+        .plyr { width: 100%; height: 100%; }
 
         .plyr__video-wrapper,  
         .plyr__video-wrapper video {
@@ -171,25 +173,13 @@
             100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0); }
         }
 
-        /* Başlangıç Mesajı CSS'i */
         .initial-message {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            color: #ccc;
-            font-size: 18px;
-            font-weight: 600;
-            text-align: center;
-            opacity: 0.8;
-            padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 15px; color: #ccc; font-size: 18px; font-weight: 600;
+            text-align: center; opacity: 0.8; padding: 20px;
         }
         
-        .initial-message svg {
-            width: 60px;
-            height: 60px;
-            stroke: var(--primary-color);
-        }
+        .initial-message svg { width: 60px; height: 60px; stroke: var(--primary-color); }
 
         .sidebar {
             flex: 1; background-color: var(--panel-bg);
@@ -198,12 +188,10 @@
             transition: background-color 0.3s ease;
         }
 
-        .sidebar-header { padding: 20px 20px 10px 20px; font-weight: 600; font-size: 18px; flex-shrink: 0; }
+        .sidebar-header { padding: 20px 20px 10px 20px; font-weight: 600; font-size: 18px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;}
 
-        .search-container {
-            padding: 0 20px 15px 20px;
-            flex-shrink: 0;
-        }
+        .search-container { padding: 0 20px 15px 20px; flex-shrink: 0; }
+        
         .search-input {
             width: 100%; padding: 10px 15px; border-radius: 6px;
             border: 1px solid #444; background-color: #222; color: #fff;
@@ -225,16 +213,14 @@
 
         body.light-mode .tab-btn { background-color: #e0e0e0; color: #333; }
         .tab-btn:hover { opacity: 0.8; }
-
         .tab-btn.spor.active { background-color: var(--spor-color); color: #fff; }
         .tab-btn.ulusal.active { background-color: var(--ulusal-color); color: #fff; }
         .tab-btn.favoriler.active { background-color: var(--fav-color); color: #fff; }
 
-                .channel-list { 
-            padding: 10px 10px 80px 10px; 
+        .channel-list { 
+            padding: 10px; 
             overflow-y: auto; 
             flex: 1;   
-            /* YENİ: Liste elemanlarını birbirinden düzgün ayırmak için flex ve gap ekliyoruz */
             display: flex;
             flex-direction: column;
             gap: 6px; 
@@ -246,12 +232,10 @@
 
         .channel-btn {
             width: 100%; 
-            /* YENİ: Tamamen transparan yerine çok hafif, kutu hissi veren bir arka plan ve sınır */
             background-color: rgba(255, 255, 255, 0.03); 
             border: 1px solid rgba(255, 255, 255, 0.05); 
             color: var(--text-color);
-            padding: 12px 15px; /* İç boşluğu biraz artırarak ferahlattık */
-            /* margin-bottom: 8px; -> Silindi, yerine .channel-list içinde gap kullandık */
+            padding: 12px 15px; 
             text-align: left;
             font-size: 15px; 
             border-radius: 8px; 
@@ -260,58 +244,28 @@
             display: flex; 
             align-items: center; 
             gap: 12px;
+            flex-shrink: 0;
         }
 
         .channel-btn:hover { background-color: #333; transform: translateX(5px); }
-        /* YENİ: Aktif kanalın arka planını ve çerçevesini belirginleştiriyoruz */
-        .channel-btn.active { 
-            background-color: #444; 
-            font-weight: 600; 
-            border-color: rgba(255, 255, 255, 0.15);
-        }
+        .channel-btn.active { background-color: #444; font-weight: 600; border-color: rgba(255, 255, 255, 0.15); }
 
-        /* YENİ: Gündüz modu için hafif gölgeli kart/grid görünümü */
-        body.light-mode .channel-btn { 
-            background-color: #ffffff; 
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
+        body.light-mode .channel-btn { background-color: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         body.light-mode .channel-btn:hover { background-color: #f8f9fa; }
         body.light-mode .channel-btn.active { background-color: #e9ecef; border-color: #ced4da; }
 
+        .channel-icon-tv { width: 24px; height: 24px; flex-shrink: 0; stroke: var(--text-color); transition: stroke 0.3s ease; }
+        .channel-btn.active .channel-icon-tv { stroke: var(--primary-color); }
+        body.light-mode .channel-icon-tv { stroke: var(--text-color); }
 
-        .channel-icon-tv {
-            width: 24px;
-            height: 24px;
-            flex-shrink: 0;
-            stroke: var(--text-color);
-            transition: stroke 0.3s ease;
-        }
-        .channel-btn.active .channel-icon-tv {
-            stroke: var(--primary-color);
-        }
-        body.light-mode .channel-icon-tv {
-            stroke: var(--text-color);
-        }
-
-        /* YENİ: Şık HD Rozeti CSS'i */
         .hd-badge {
-            background: linear-gradient(45deg, #e50914, #ff4b2b);
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 5px;
-            border-radius: 4px;
-            letter-spacing: 0.5px;
-            box-shadow: 0 0 5px rgba(229, 9, 20, 0.4);
-            margin-left: 6px;
-            display: inline-block;
-            vertical-align: middle;
+            background: linear-gradient(45deg, #e50914, #ff4b2b); color: #fff;
+            font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
+            letter-spacing: 0.5px; box-shadow: 0 0 5px rgba(229, 9, 20, 0.4);
+            margin-left: 6px; display: inline-block; vertical-align: middle;
         }
 
-        .fav-star {
-            margin-left: auto; font-size: 20px; color: #555; cursor: pointer; transition: 0.2s;
-        }
+        .fav-star { margin-left: auto; font-size: 20px; color: #555; cursor: pointer; transition: 0.2s; }
         .fav-star:hover { transform: scale(1.2); }
         .fav-star.active { color: var(--fav-color); text-shadow: 0 0 5px rgba(243, 156, 18, 0.5); }
         body.light-mode .fav-star { color: #ccc; }
@@ -319,6 +273,32 @@
 
         .empty-fav { text-align: center; padding: 20px; color: #888; font-size: 14px; }
 
+        .channel-count-badge {
+            background: linear-gradient(45deg, #00b09b, #96c93d); color: #fff;
+            font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 176, 155, 0.4); letter-spacing: 0.5px;
+        }
+
+        .toast-container {
+            position: fixed; bottom: 20px; right: 20px; display: flex;
+            flex-direction: column; gap: 10px; z-index: 9999; pointer-events: none;
+        }
+
+        .toast {
+            background-color: #2a2a2a; color: #fff; padding: 12px 20px;
+            border-radius: 8px; font-size: 14px; font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); display: flex; align-items: center;
+            gap: 10px; transform: translateX(120%); opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s ease;
+        }
+
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.success { border-left: 4px solid var(--spor-color); }
+        .toast.warning { border-left: 4px solid var(--primary-color); }
+        body.light-mode .toast { background-color: #ffffff; color: #333; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+
+
+        /* =============== MOBİL UYUM (RESPONSIVE) =============== */
         @media (max-width: 900px) {
             header { padding: 10px 15px; }
             header h1 { font-size: 20px; }
@@ -327,7 +307,7 @@
             .main-container { flex-direction: column; }
             
             .player-section { 
-                flex: none; 
+                flex: 0 0 auto; /* Mobilde videonun ezilmemesi için flex'i kilitliyoruz */
                 width: 100%;
                 height: auto;
                 aspect-ratio: 16 / 9; 
@@ -338,82 +318,31 @@
                 flex: 1; 
                 border-left: none; 
                 border-top: 2px solid var(--primary-color); 
-                min-height: 0; 
+                min-height: 0; /* İçerik taşmasını engeller */
             }
 
-            .sidebar-header { 
-    padding: 20px 20px 10px 20px; 
-    font-weight: 600; 
-    font-size: 18px; 
-    flex-shrink: 0; 
-    display: flex; 
-    justify-content: space-between; /* Yazı solda, rozet sağda */
-    align-items: center; 
-}
+            /* Mobilde yer kazanmak için iç boşlukları (padding) daraltıyoruz */
+            .sidebar-header { padding: 12px 15px 8px 15px; font-size: 16px; }
+            .search-container { padding: 0 15px 10px 15px; }
+            .search-input { padding: 8px 12px; font-size: 13px; }
+            .category-tabs { padding: 0 15px 10px 15px; }
+            .tab-btn { padding: 6px; font-size: 12px; }
+            .channel-list { padding: 5px 10px 10px 10px; gap: 4px;}
+            .channel-btn { padding: 10px 12px; font-size: 14px; }
 
-.channel-count-badge {
-    background: linear-gradient(45deg, #00b09b, #96c93d); /* Şık yeşil gradyan */
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 176, 155, 0.4);
-    letter-spacing: 0.5px;
-}
-
-
-/* --- TOAST BİLDİRİMLERİ --- */
-.toast-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 9999;
-    pointer-events: none; /* Tıklamaları engellememesi için */
-}
-
-.toast {
-    background-color: #2a2a2a;
-    color: #fff;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transform: translateX(120%); /* Başlangıçta ekranın sağında saklı */
-    opacity: 0;
-    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s ease;
-}
-
-.toast.show {
-    transform: translateX(0); /* Ekrana giriş */
-    opacity: 1;
-}
-
-/* Duruma Göre Sol Kenarlık Renkleri */
-.toast.success { border-left: 4px solid var(--spor-color); }
-.toast.warning { border-left: 4px solid var(--primary-color); }
-
-/* Gündüz Modu Uyumu */
-body.light-mode .toast {
-    background-color: #ffffff;
-    color: #333;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-
-            .channel-btn {
-                padding: 12px 15px; 
-                margin-bottom: 6px;
+            .now-playing {
+                top: 10px; left: 10px;
+                padding: 5px 10px;
+                font-size: 12px;
             }
+            .now-playing svg { width: 14px; height: 14px; }
+
+            .toast-container {
+                bottom: 15px; left: 15px; right: 15px; 
+                align-items: center; /* Mobilde ortalı durması için */
+            }
+            .toast { width: 100%; justify-content: center; }
         }
-
     </style>
 </head>
 <body>
@@ -445,10 +374,9 @@ body.light-mode .toast {
         <div class="player-section">
             
             <div class="now-playing" id="now-playing-badge" style="display: none;">
-    <div class="live-indicator"></div>
-    <span id="current-channel-name">Kanal Seçilmedi</span>
-</div>
-
+                <div class="live-indicator"></div>
+                <span id="current-channel-name">Kanal Seçilmedi</span>
+            </div>
 
             <div id="loader-overlay" class="overlay-screen">
                 <div class="spinner"></div>
@@ -464,16 +392,17 @@ body.light-mode .toast {
             
         </div>
 
-        <div class="sidebar-header">
-    <span>Kanal Listesi</span>
-    <span id="channel-count-badge" class="channel-count-badge"></span>
-</div>
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>Kanal Listesi</span>
+                <span id="channel-count-badge" class="channel-count-badge"></span>
+            </div>
             
             <div class="search-container">
                 <input type="text" id="channel-search" class="search-input" placeholder="Kanal ara...">
             </div>
 
-<div id="toast-container" class="toast-container"></div>
+            <div id="toast-container" class="toast-container"></div>
             
             <div class="category-tabs">
                 <button class="tab-btn spor active" onclick="setCategory('Spor')">Spor</button>
@@ -486,8 +415,6 @@ body.light-mode .toast {
     </div>
 
     <script>
-
-
         // TEMA YÖNETİMİ
         const themeToggleBtn = document.getElementById('theme-toggle');
         if (localStorage.getItem('fatih_theme') === 'light') document.body.classList.add('light-mode');
@@ -536,7 +463,6 @@ body.light-mode .toast {
         let dashPlayer = null;
         let plyrInstance = null;
 
-        // ARAMA DİNLEYİCİSİ
         searchInput.addEventListener('input', () => {
             renderChannels(searchInput.value.toLowerCase());
         });
@@ -549,47 +475,38 @@ body.light-mode .toast {
             renderChannels();
         }
 
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    // İşleme göre ikon belirleme
-    const icon = type === 'success' ? '🌟' : '🗑️';
-    toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
-    
-    container.appendChild(toast);
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? '🌟' : '🗑️';
+            toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+            
+            container.appendChild(toast);
 
-    // Animasyonun çalışması için çok kısa bir gecikme
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 10);
+            setTimeout(() => toast.classList.add('show'), 10);
 
-    // 3 saniye sonra kaybolma animasyonu
-    setTimeout(() => {
-        toast.classList.remove('show');
-        // Animasyon bitince HTML'den tamamen temizle
-        setTimeout(() => {
-            toast.remove();
-        }, 300);
-    }, 3000);
-}
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
 
         function toggleFavorite(e, channelName) {
-    e.stopPropagation(); 
-    
-    if (favoriteChannels.includes(channelName)) {
-        favoriteChannels = favoriteChannels.filter(name => name !== channelName);
-        showToast(`${channelName} favorilerden çıkarıldı.`, 'warning'); // YENİ EKLENEN SATIR
-    } else {
-        favoriteChannels.push(channelName);
-        showToast(`${channelName} favorilere eklendi!`, 'success'); // YENİ EKLENEN SATIR
-    }
-    
-    localStorage.setItem('fatih_favorites', JSON.stringify(favoriteChannels));
-    renderChannels(searchInput.value.toLowerCase()); 
-}
-
+            e.stopPropagation(); 
+            
+            if (favoriteChannels.includes(channelName)) {
+                favoriteChannels = favoriteChannels.filter(name => name !== channelName);
+                showToast(`${channelName} favorilerden çıkarıldı.`, 'warning'); 
+            } else {
+                favoriteChannels.push(channelName);
+                showToast(`${channelName} favorilere eklendi!`, 'success'); 
+            }
+            
+            localStorage.setItem('fatih_favorites', JSON.stringify(favoriteChannels));
+            renderChannels(searchInput.value.toLowerCase()); 
+        }
 
         function renderChannels(searchTerm = '') {
             channelListContainer.innerHTML = ''; 
@@ -606,9 +523,7 @@ function showToast(message, type = 'success') {
             }
 
             currentVisibleChannels = filteredChannels;
-
-document.getElementById('channel-count-badge').innerText = currentVisibleChannels.length;
-
+            document.getElementById('channel-count-badge').innerText = currentVisibleChannels.length;
 
             if (filteredChannels.length === 0) {
                 const message = currentCategory === 'Favoriler' && !searchTerm ? 
@@ -626,7 +541,6 @@ document.getElementById('channel-count-badge').innerText = currentVisibleChannel
                 
                 button.onclick = () => playChannel(channel, button);
 
-                // YENİ: HD Rozetini ekliyoruz. İsimde zaten "HD" varsa onu silip rozeti yanına ekliyoruz.
                 let displayName = channel.name;
                 let hasHD = false;
                 
@@ -680,14 +594,6 @@ document.getElementById('channel-count-badge').innerText = currentVisibleChannel
             }
         });
 
-function updateNetworkStatus(status) {
-    const icon = document.getElementById('network-status-icon');
-    if (!icon) return;
-    icon.classList.remove('good', 'warning', 'poor');
-    icon.classList.add(status);
-}
-
-
         function retryStream() {
             if(currentActiveChannelObj) {
                 playChannel(currentActiveChannelObj);
@@ -732,22 +638,18 @@ function updateNetworkStatus(status) {
             if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
 
             videoWrapper.innerHTML = '<video id="tv-player" controls crossorigin playsinline></video>';
-const video = document.getElementById('tv-player');
+            const video = document.getElementById('tv-player');
 
+            video.addEventListener('playing', () => {
+                loaderOverlay.style.display = 'none';
+                if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
+            });
 
-
-video.addEventListener('playing', () => {
-    loaderOverlay.style.display = 'none';
-    if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
-});
-
-video.addEventListener('error', () => {
-    loaderOverlay.style.display = 'none';
-    errorOverlay.style.display = 'flex';
-    if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
-});
- 
-
+            video.addEventListener('error', () => {
+                loaderOverlay.style.display = 'none';
+                errorOverlay.style.display = 'flex';
+                if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
+            });
 
             const url = channel.url.toLowerCase();
             const plyrOptions = {
