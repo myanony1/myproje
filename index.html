@@ -254,7 +254,62 @@
 
         .empty-fav { text-align: center; padding: 20px; color: #888; font-size: 14px; }
 
+        /* Takım Seçici Buton Tasarımları */
+.team-selector {
+    display: flex;
+    gap: 10px;
+    margin-right: 15px;
+    align-items: center;
+}
+
+.team-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.team-btn:hover {
+    transform: scale(1.2);
+}
+
+/* Çift renkli takım butonları */
+.team-btn.default { background: #e50914; }
+.team-btn.gs { background: linear-gradient(135deg, #A90432 50%, #FDB912 50%); }
+.team-btn.fb { background: linear-gradient(135deg, #072A6C 50%, #FEE500 50%); }
+.team-btn.bjk { background: linear-gradient(135deg, #000000 50%, #FFFFFF 50%); border-color: #555; }
+.team-btn.ts { background: linear-gradient(135deg, #81123C 50%, #5CB3DD 50%); }
+
+/* --- DİNAMİK TAKIM RENKLERİ --- */
+body[data-team="gs"] {
+    --primary-color: #A90432; /* Galatasaray Kırmızı */
+    --plyr-color-main: #FDB912; /* Player çubuğu Sarı */
+    --spor-color: #A90432;
+}
+
+body[data-team="fb"] {
+    --primary-color: #072A6C; /* Fenerbahçe Lacivert */
+    --plyr-color-main: #FEE500; /* Player çubuğu Sarı */
+    --spor-color: #072A6C;
+}
+
+body[data-team="bjk"] {
+    --primary-color: #555555; /* Beşiktaş Gri/Siyah */
+    --plyr-color-main: #ffffff; /* Player çubuğu Beyaz */
+    --spor-color: #333333;
+}
+
+body[data-team="ts"] {
+    --primary-color: #81123C; /* Trabzonspor Bordo */
+    --plyr-color-main: #5CB3DD; /* Player çubuğu Mavi */
+    --spor-color: #81123C;
+}
+
         @media (max-width: 900px) {
+            .team-selector { gap: 6px; margin-right: 10px; }
+    .team-btn { width: 18px; height: 18px; }
             header { padding: 10px 15px; }
             header h1 { font-size: 20px; }
             .brand-logo { width: 28px; height: 28px; } 
@@ -311,6 +366,13 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
         </button>
+        <div class="team-selector">
+    <button class="team-btn default" title="FatihSports Varsayılan" onclick="setTeamTheme('default')"></button>
+    <button class="team-btn gs" title="Galatasaray" onclick="setTeamTheme('gs')"></button>
+    <button class="team-btn fb" title="Fenerbahçe" onclick="setTeamTheme('fb')"></button>
+    <button class="team-btn bjk" title="Beşiktaş" onclick="setTeamTheme('bjk')"></button>
+    <button class="team-btn ts" title="Trabzonspor" onclick="setTeamTheme('ts')"></button>
+</div>
     </header>
 
     <div class="main-container">
@@ -657,6 +719,23 @@
             const firstChannel = channels.find(c => c.category === 'Spor');
             if(firstChannel) setTimeout(() => playChannel(firstChannel), 100);
         };
+
+        // --- DİNAMİK TARAFTAR TEMASI YÖNETİMİ ---
+function setTeamTheme(team) {
+    if (team === 'default') {
+        document.body.removeAttribute('data-team');
+    } else {
+        document.body.setAttribute('data-team', team);
+    }
+    // Seçimi tarayıcıya kaydet
+    localStorage.setItem('fatih_team', team);
+}
+
+// Sayfa yüklendiğinde eski seçimi hatırla
+const savedTeam = localStorage.getItem('fatih_team');
+if (savedTeam) {
+    setTeamTheme(savedTeam);
+}
     </script>
 </body>
 </html>
