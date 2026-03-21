@@ -670,10 +670,12 @@
                     hasHD = true;
                 }
 
-                button.innerHTML = `
-                    <svg class="channel-icon-tv" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
-                        <polyline points="17 2 12 7 7 2"></polyline>
+                                button.innerHTML = `
+                    <svg class="channel-icon-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="14" rx="2.5" ry="2.5"></rect>
+                        <path d="M8 22h8"></path>
+                        <path d="M12 18v4"></path>
+                        <polygon points="10 8 15 11 10 14 10 8" fill="currentColor"></polygon>
                     </svg>
                     <span style="flex: 1; display: flex; align-items: center;">
                         ${displayName} ${hasHD ? '<span class="hd-badge">HD</span>' : ''}
