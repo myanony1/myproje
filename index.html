@@ -670,18 +670,17 @@
                     hasHD = true;
                 }
 
-                                button.innerHTML = `
-                    <svg class="channel-icon-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="4" width="20" height="14" rx="2.5" ry="2.5"></rect>
-                        <path d="M8 22h8"></path>
-                        <path d="M12 18v4"></path>
-                        <polygon points="10 8 15 11 10 14 10 8" fill="currentColor"></polygon>
+                                                button.innerHTML = `
+                    <svg class="channel-icon-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <text x="12" y="16.5" font-family="Poppins, sans-serif" font-weight="bold" font-size="20" fill="currentColor" text-anchor="middle" dominant-baseline="central" font-style="italic">F</text>
                     </svg>
                     <span style="flex: 1; display: flex; align-items: center;">
                         ${displayName} ${hasHD ? '<span class="hd-badge">HD</span>' : ''}
                     </span>
                     <span class="fav-star ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${channel.name}')">★</span>
                 `;
+
 
                 channelListContainer.appendChild(button);
             });
