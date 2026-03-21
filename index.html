@@ -120,7 +120,7 @@
         }
 
         #video-wrapper {
-            width: 100%; height: 100%; display: flex;
+            width: 100%; flex: 1; display: flex;
             align-items: center; justify-content: center; position: relative;
         }
 
@@ -133,6 +133,52 @@
             object-fit: contain !important; 
             background: #000; 
         }
+
+        /* --- YENİ EKLENEN PLAYER ALT BİLGİ ÇUBUĞU --- */
+        .player-info-bar {
+            background-color: var(--panel-bg);
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid rgba(128, 128, 128, 0.2);
+            font-size: 16px;
+            font-weight: 600;
+            flex-shrink: 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .live-indicator-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .live-indicator {
+            width: 10px; height: 10px; background-color: var(--primary-color);
+            border-radius: 50%; animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(229, 9, 20, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0); }
+        }
+
+        .info-separator {
+            color: #666;
+            margin: 0 10px;
+            font-weight: 400;
+        }
+
+        .info-category {
+            color: #888;
+            font-weight: 400;
+            font-size: 15px;
+        }
+        body.light-mode .info-category { color: #666; }
+        /* ------------------------------------------- */
 
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -357,8 +403,20 @@
                 flex: 0 0 auto;
                 width: 100%;
                 height: auto;
-                aspect-ratio: 16 / 9; 
             }
+
+            #video-wrapper {
+                aspect-ratio: 16 / 9;
+                height: auto;
+            }
+
+            .player-info-bar {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
+            .info-separator { margin: 0 6px; }
+            .info-category { font-size: 13px; }
 
             .sidebar { 
                 max-width: 100%; 
@@ -432,6 +490,17 @@
             </div>
 
             <div id="video-wrapper"></div>
+            
+            <div id="player-info-bar" class="player-info-bar" style="display: none;">
+                <div class="live-indicator-wrapper">
+                    <div class="live-indicator"></div>
+                    <span>CANLI</span>
+                </div>
+                <span class="info-separator">-</span>
+                <span id="info-channel-name"></span>
+                <span class="info-separator">-</span>
+                <span id="info-category-name" class="info-category"></span>
+            </div>
             
         </div>
 
@@ -538,6 +607,11 @@
         const loaderOverlay = document.getElementById('loader-overlay');
         const errorOverlay = document.getElementById('error-overlay');
         const searchInput = document.getElementById('channel-search');
+        
+        // Yeni eklenen alanlar için DOM elementleri
+        const playerInfoBar = document.getElementById('player-info-bar');
+        const infoChannelName = document.getElementById('info-channel-name');
+        const infoCategoryName = document.getElementById('info-category-name');
         
         let hlsPlayer = null;
         let dashPlayer = null;
@@ -699,6 +773,11 @@
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             if(buttonElement) buttonElement.classList.add('active');
             else renderChannels(searchInput.value.toLowerCase()); 
+            
+            // Alt bilgi çubuğunu güncelle ve göster
+            infoChannelName.innerText = channel.name;
+            infoCategoryName.innerText = channel.category + " Kanalı";
+            playerInfoBar.style.display = 'flex';
             
             loaderOverlay.style.display = 'flex';
             errorOverlay.style.display = 'none';
