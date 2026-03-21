@@ -120,15 +120,10 @@
             flex-direction: column; position: relative;
         }
 
-                #video-wrapper {
-            width: 100%; 
-            flex: 1; /* Yeni Eklendi: Kalan yüksekliği doldurur */
-            display: flex;
+        #video-wrapper {
+            width: 100%; height: 100%; display: flex;
             align-items: center; justify-content: center; position: relative;
-            min-height: 0;
-aspect-ratio: 16 / 9; /* Video oranını buraya taşıdık */
         }
-
 
         .plyr { width: 100%; height: 100%; }
 
@@ -166,49 +161,13 @@ aspect-ratio: 16 / 9; /* Video oranını buraya taşıdık */
         }
         .retry-btn:hover { background-color: #b80710; }
 
-                /* YENİ ALT BİLGİ ÇUBUĞU STİLLERİ */
-        .now-playing-bar {
-            background-color: var(--panel-bg);
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px solid rgba(128, 128, 128, 0.2);
-            flex-shrink: 0;
-            transition: background-color 0.3s ease;
-            z-index: 10;
+        .now-playing {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(0, 0, 0, 0.7); color: #ffffff;
+            padding: 8px 15px; border-radius: 5px; font-size: 14px;
+            font-weight: 600; display: flex; align-items: center; gap: 10px;
+            pointer-events: none; z-index: 10;
         }
-
-        body.light-mode .now-playing-bar {
-            background-color: #ffffff;
-        }
-
-        .live-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--primary-color);
-            font-weight: 700;
-            font-size: 15px;
-            flex: 1;
-        }
-
-        .channel-name-display {
-            flex: 2;
-            text-align: center;
-            font-weight: 600;
-            font-size: 17px;
-            color: var(--text-color);
-        }
-
-        .channel-category-display {
-            flex: 1;
-            text-align: right;
-            font-weight: 600;
-            font-size: 14px;
-            color: #888;
-        }
-
 
         .live-indicator {
             width: 10px; height: 10px; background-color: var(--primary-color);
@@ -420,6 +379,7 @@ aspect-ratio: 16 / 9; /* Video oranını buraya taşıdık */
                 flex: 0 0 auto;
                 width: 100%;
                 height: auto;
+                aspect-ratio: 16 / 9; 
             }
 
             .sidebar { 
@@ -491,7 +451,7 @@ aspect-ratio: 16 / 9; /* Video oranını buraya taşıdık */
     <div class="main-container">
         <div class="player-section">
             
-            
+            <div class="now-playing" id="now-playing-badge" style="display: none;">
                 <div class="live-indicator"></div>
                 <span id="current-channel-name">Kanal Seçilmedi</span>
             </div>
@@ -507,15 +467,6 @@ aspect-ratio: 16 / 9; /* Video oranını buraya taşıdık */
             </div>
 
             <div id="video-wrapper"></div>
-
-<div class="now-playing-bar" id="now-playing-badge" style="display: none;">
-                <div class="live-status">
-                    <div class="live-indicator"></div>
-                    <span>CANLI</span>
-                </div>
-                <div class="channel-name-display" id="current-channel-name">Kanal Seçilmedi</div>
-                <div class="channel-category-display" id="current-channel-category">Kategori</div>
-            </div>
             
         </div>
 
@@ -793,7 +744,6 @@ aspect-ratio: 16 / 9; /* Video oranını buraya taşıdık */
             else renderChannels(searchInput.value.toLowerCase()); 
 
             currentChannelNameEl.innerText = channel.name;
-document.getElementById('current-channel-category').innerText = channel.category;
             nowPlayingBadge.style.display = 'flex';
             
             loaderOverlay.style.display = 'flex';
