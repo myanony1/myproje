@@ -23,6 +23,7 @@
             --spor-color: #28a745;   
             --ulusal-color: #dc3545; 
             --fav-color: #f39c12; 
+            --yedek-color: #e67e22; /* Yedek rozeti için renk */
             
             --plyr-color-main: #e50914; 
             --plyr-video-background: #000000;
@@ -134,7 +135,6 @@
             background: #000; 
         }
 
-        /* --- YENİ EKLENEN PLAYER ALT BİLGİ ÇUBUĞU --- */
         .player-info-bar {
             background-color: var(--panel-bg);
             padding: 15px 25px;
@@ -178,7 +178,6 @@
             font-size: 15px;
         }
         body.light-mode .info-category { color: #666; }
-        /* ------------------------------------------- */
 
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -280,8 +279,42 @@
             flex-shrink: 0;
         }
 
+        /* --- SÜRÜKLE BIRAK (DRAG & DROP) STİLLERİ --- */
+        .channel-btn[draggable="true"] { cursor: grab; }
+        .channel-btn[draggable="true"]:active { cursor: grabbing; }
+        
+        .channel-btn.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-color: var(--fav-color);
+        }
+        
+        .channel-btn.drag-over-top {
+            border-top: 2px solid var(--fav-color);
+            padding-top: 18px;
+        }
+        
+        .channel-btn.drag-over-bottom {
+            border-bottom: 2px solid var(--fav-color);
+            padding-bottom: 18px;
+        }
+
+        .drag-handle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            cursor: grab;
+            margin-right: -5px;
+            padding: 5px;
+        }
+        .drag-handle:hover { color: var(--text-color); }
+        /* ----------------------------------------- */
+
         .channel-btn:hover { background-color: #333; transform: translateX(5px); }
         .channel-btn.active { background-color: #444; font-weight: 600; border-color: rgba(255, 255, 255, 0.15); }
+        .channel-btn.dragging:hover { transform: none; } /* Sürüklerken hover efektini iptal et */
 
         body.light-mode .channel-btn { background-color: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         body.light-mode .channel-btn:hover { background-color: #f8f9fa; }
@@ -297,14 +330,32 @@
         .channel-btn.active .channel-icon-tv { stroke: var(--primary-color); }
         body.light-mode .channel-icon-tv { stroke: var(--text-color); }
 
-        .hd-badge {
-            background: linear-gradient(45deg, #e50914, #ff4b2b); color: #fff;
-            font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
-            letter-spacing: 0.5px; box-shadow: 0 0 5px rgba(229, 9, 20, 0.4);
-            margin-left: 6px; display: inline-block; vertical-align: middle;
+        /* --- ROZET (BADGE) STİLLERİ --- */
+        .badge-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 8px;
         }
 
-        .fav-star { margin-left: auto; font-size: 20px; color: #555; cursor: pointer; transition: 0.2s; }
+        .hd-badge, .yedek-badge {
+            color: #fff;
+            font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
+            letter-spacing: 0.5px; display: inline-block; vertical-align: middle;
+        }
+
+        .hd-badge {
+            background: linear-gradient(45deg, #e50914, #ff4b2b);
+            box-shadow: 0 0 5px rgba(229, 9, 20, 0.4);
+        }
+
+        .yedek-badge {
+            background: linear-gradient(45deg, #f39c12, var(--yedek-color));
+            box-shadow: 0 0 5px rgba(243, 156, 18, 0.4);
+        }
+        /* -------------------------------- */
+
+        .fav-star { margin-left: auto; font-size: 20px; color: #555; cursor: pointer; transition: 0.2s; padding-left: 10px; }
         .fav-star:hover { transform: scale(1.2); }
         .fav-star.active { color: var(--fav-color); text-shadow: 0 0 5px rgba(243, 156, 18, 0.5); }
         body.light-mode .fav-star { color: #ccc; }
@@ -602,13 +653,15 @@
         let favoriteChannels = JSON.parse(localStorage.getItem('fatih_favorites')) || [];
         let forceHideLoaderTimeout = null; 
 
+        // Sürükle Bırak için değişken
+        let draggedChannelName = null;
+
         const channelListContainer = document.getElementById('channel-list');
         const videoWrapper = document.getElementById('video-wrapper');
         const loaderOverlay = document.getElementById('loader-overlay');
         const errorOverlay = document.getElementById('error-overlay');
         const searchInput = document.getElementById('channel-search');
         
-        // Yeni eklenen alanlar için DOM elementleri
         const playerInfoBar = document.getElementById('player-info-bar');
         const infoChannelName = document.getElementById('info-channel-name');
         const infoCategoryName = document.getElementById('info-category-name');
@@ -662,12 +715,77 @@
             renderChannels(searchInput.value.toLowerCase()); 
         }
 
+        /* --- DRAG AND DROP (SÜRÜKLE BIRAK) FONKSİYONLARI --- */
+        function handleDragStart(e) {
+            draggedChannelName = this.dataset.channel;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.channel);
+            setTimeout(() => this.classList.add('dragging'), 0);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            const bounding = this.getBoundingClientRect();
+            const offset = bounding.y + (bounding.height / 2);
+            
+            this.classList.remove('drag-over-top', 'drag-over-bottom');
+            if (e.clientY - offset > 0) {
+                this.classList.add('drag-over-bottom');
+            } else {
+                this.classList.add('drag-over-top');
+            }
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over-top', 'drag-over-bottom');
+        }
+
+        function handleDrop(e) {
+            e.stopPropagation();
+            this.classList.remove('drag-over-top', 'drag-over-bottom');
+            
+            const targetChannelName = this.dataset.channel;
+            
+            if (draggedChannelName !== targetChannelName) {
+                const draggedIdx = favoriteChannels.indexOf(draggedChannelName);
+                const targetIdx = favoriteChannels.indexOf(targetChannelName);
+                
+                // Elemanı çıkar
+                favoriteChannels.splice(draggedIdx, 1);
+                
+                // Hedefin pozisyonuna göre yeni yere ekle
+                if (this.classList.contains('drag-over-bottom')) {
+                    favoriteChannels.splice(targetIdx + 1, 0, draggedChannelName);
+                } else {
+                    favoriteChannels.splice(targetIdx, 0, draggedChannelName);
+                }
+                
+                localStorage.setItem('fatih_favorites', JSON.stringify(favoriteChannels));
+                renderChannels();
+            }
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.channel-btn').forEach(btn => {
+                btn.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+        }
+        /* ---------------------------------------------------- */
+
         function renderChannels(searchTerm = '') {
             channelListContainer.innerHTML = ''; 
             let filteredChannels = [];
             
             if (currentCategory === 'Favoriler') {
-                filteredChannels = channels.filter(c => favoriteChannels.includes(c.name));
+                // Favorileri, kullanıcının kaydettiği sıraya göre diz
+                filteredChannels = favoriteChannels
+                    .map(favName => channels.find(c => c.name === favName))
+                    .filter(c => c !== undefined); 
             } else {
                 filteredChannels = channels.filter(c => c.category === currentCategory);
             }
@@ -687,29 +805,76 @@
                 return;
             }
 
+            const isFavorilerTab = currentCategory === 'Favoriler' && !searchTerm;
+
             filteredChannels.forEach((channel) => {
                 const isFav = favoriteChannels.includes(channel.name);
                 
                 const button = document.createElement('div');
                 button.className = `channel-btn ${currentActiveChannelObj && currentActiveChannelObj.name === channel.name ? 'active' : ''}`;
                 
-                button.onclick = () => playChannel(channel, button);
+                // Oynatma fonksiyonu ataması
+                button.onclick = (e) => {
+                    // Sürükleme esnasında tıklanmayı engellemek için
+                    if(!button.classList.contains('dragging')){
+                        playChannel(channel, button);
+                    }
+                };
 
                 let displayName = channel.name;
                 let hasHD = false;
+                let isYedek = false;
                 
+                // Rozet kelimelerini temizle ve belirteçleri aktif et
                 if (displayName.includes(' HD')) {
                     displayName = displayName.replace(' HD', '');
                     hasHD = true;
                 }
+                
+                if (displayName.toLowerCase().includes('yedek')) {
+                    // " Yedek", "Yedek", " YEDEK" fark etmeksizin siler
+                    displayName = displayName.replace(/yedek/i, '').trim();
+                    isYedek = true;
+                }
+
+                // Sürükle-bırak ikonu sadece Favoriler'de çıkar
+                let dragHandleHTML = '';
+                if (isFavorilerTab) {
+                    button.setAttribute('draggable', 'true');
+                    button.dataset.channel = channel.name;
+                    
+                    button.addEventListener('dragstart', handleDragStart);
+                    button.addEventListener('dragover', handleDragOver);
+                    button.addEventListener('dragleave', handleDragLeave);
+                    button.addEventListener('drop', handleDrop);
+                    button.addEventListener('dragend', handleDragEnd);
+
+                    dragHandleHTML = `
+                        <div class="drag-handle" title="Tut ve Sürükle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="8" y1="6" x2="21" y2="6"></line>
+                                <line x1="8" y1="12" x2="21" y2="12"></line>
+                                <line x1="8" y1="18" x2="21" y2="18"></line>
+                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                        </div>
+                    `;
+                }
 
                 button.innerHTML = `
+                    ${dragHandleHTML}
                     <svg class="channel-icon-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                         <text x="11.5" y="13" font-family="Poppins, sans-serif" font-weight="bold" font-size="15" font-style="italic" fill="currentColor" stroke="none" text-anchor="middle" dominant-baseline="central">F</text>
                     </svg>
-                    <span style="flex: 1; display: flex; align-items: center;">
-                        ${displayName} ${hasHD ? '<span class="hd-badge">HD</span>' : ''}
+                    <span style="flex: 1; display: flex; align-items: center; pointer-events: none;">
+                        ${displayName} 
+                        <span class="badge-container">
+                            ${hasHD ? '<span class="hd-badge">HD</span>' : ''}
+                            ${isYedek ? '<span class="yedek-badge">YEDEK</span>' : ''}
+                        </span>
                     </span>
                     <span class="fav-star ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${channel.name}')">★</span>
                 `;
@@ -774,7 +939,6 @@
             if(buttonElement) buttonElement.classList.add('active');
             else renderChannels(searchInput.value.toLowerCase()); 
             
-            // Alt bilgi çubuğunu güncelle ve göster
             infoChannelName.innerText = channel.name;
             infoCategoryName.innerText = channel.category + " Kanalı";
             playerInfoBar.style.display = 'flex';
