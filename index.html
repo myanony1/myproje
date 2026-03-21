@@ -11,6 +11,8 @@
     
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
@@ -23,7 +25,7 @@
             --spor-color: #28a745;   
             --ulusal-color: #dc3545; 
             --fav-color: #f39c12; 
-            --yedek-color: #e67e22; /* Yedek rozeti için renk */
+            --yedek-color: #e67e22;
             
             --plyr-color-main: #e50914; 
             --plyr-video-background: #000000;
@@ -272,34 +274,15 @@
             font-size: 17px;
             border-radius: 10px;
             cursor: pointer; 
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
             display: flex; 
             align-items: center; 
             gap: 15px;
             flex-shrink: 0;
+            position: relative;
         }
 
-        /* --- SÜRÜKLE BIRAK (DRAG & DROP) STİLLERİ --- */
-        .channel-btn[draggable="true"] { cursor: grab; }
-        .channel-btn[draggable="true"]:active { cursor: grabbing; }
-        
-        .channel-btn.dragging {
-            opacity: 0.5;
-            transform: scale(0.98);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            border-color: var(--fav-color);
-        }
-        
-        .channel-btn.drag-over-top {
-            border-top: 2px solid var(--fav-color);
-            padding-top: 18px;
-        }
-        
-        .channel-btn.drag-over-bottom {
-            border-bottom: 2px solid var(--fav-color);
-            padding-bottom: 18px;
-        }
-
+        /* --- SÜRÜKLE BIRAK YENİ STİLLER (SORTABLEJS UYUMLU) --- */
         .drag-handle {
             display: flex;
             align-items: center;
@@ -308,13 +291,20 @@
             cursor: grab;
             margin-right: -5px;
             padding: 5px;
+            touch-action: none; /* Mobilde scroll ile karışmasını engeller */
         }
+        .drag-handle:active { cursor: grabbing; }
         .drag-handle:hover { color: var(--text-color); }
-        /* ----------------------------------------- */
+        
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #222 !important;
+            border: 2px dashed var(--fav-color) !important;
+        }
+        body.light-mode .sortable-ghost { background-color: #eee !important; }
 
-        .channel-btn:hover { background-color: #333; transform: translateX(5px); }
+        .channel-btn:hover { background-color: #333; }
         .channel-btn.active { background-color: #444; font-weight: 600; border-color: rgba(255, 255, 255, 0.15); }
-        .channel-btn.dragging:hover { transform: none; } /* Sürüklerken hover efektini iptal et */
 
         body.light-mode .channel-btn { background-color: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         body.light-mode .channel-btn:hover { background-color: #f8f9fa; }
@@ -652,9 +642,7 @@
         let currentVisibleChannels = []; 
         let favoriteChannels = JSON.parse(localStorage.getItem('fatih_favorites')) || [];
         let forceHideLoaderTimeout = null; 
-
-        // Sürükle Bırak için değişken
-        let draggedChannelName = null;
+        let sortableInstance = null; // SortableJS için değişken
 
         const channelListContainer = document.getElementById('channel-list');
         const videoWrapper = document.getElementById('video-wrapper');
@@ -715,74 +703,17 @@
             renderChannels(searchInput.value.toLowerCase()); 
         }
 
-        /* --- DRAG AND DROP (SÜRÜKLE BIRAK) FONKSİYONLARI --- */
-        function handleDragStart(e) {
-            draggedChannelName = this.dataset.channel;
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', this.dataset.channel);
-            setTimeout(() => this.classList.add('dragging'), 0);
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            
-            const bounding = this.getBoundingClientRect();
-            const offset = bounding.y + (bounding.height / 2);
-            
-            this.classList.remove('drag-over-top', 'drag-over-bottom');
-            if (e.clientY - offset > 0) {
-                this.classList.add('drag-over-bottom');
-            } else {
-                this.classList.add('drag-over-top');
-            }
-            return false;
-        }
-
-        function handleDragLeave(e) {
-            this.classList.remove('drag-over-top', 'drag-over-bottom');
-        }
-
-        function handleDrop(e) {
-            e.stopPropagation();
-            this.classList.remove('drag-over-top', 'drag-over-bottom');
-            
-            const targetChannelName = this.dataset.channel;
-            
-            if (draggedChannelName !== targetChannelName) {
-                const draggedIdx = favoriteChannels.indexOf(draggedChannelName);
-                const targetIdx = favoriteChannels.indexOf(targetChannelName);
-                
-                // Elemanı çıkar
-                favoriteChannels.splice(draggedIdx, 1);
-                
-                // Hedefin pozisyonuna göre yeni yere ekle
-                if (this.classList.contains('drag-over-bottom')) {
-                    favoriteChannels.splice(targetIdx + 1, 0, draggedChannelName);
-                } else {
-                    favoriteChannels.splice(targetIdx, 0, draggedChannelName);
-                }
-                
-                localStorage.setItem('fatih_favorites', JSON.stringify(favoriteChannels));
-                renderChannels();
-            }
-            return false;
-        }
-
-        function handleDragEnd(e) {
-            this.classList.remove('dragging');
-            document.querySelectorAll('.channel-btn').forEach(btn => {
-                btn.classList.remove('drag-over-top', 'drag-over-bottom');
-            });
-        }
-        /* ---------------------------------------------------- */
-
         function renderChannels(searchTerm = '') {
+            // Eğer daha önceden oluşturulmuş bir Sortable kütüphanesi varsa temizle
+            if (sortableInstance) {
+                sortableInstance.destroy();
+                sortableInstance = null;
+            }
+
             channelListContainer.innerHTML = ''; 
             let filteredChannels = [];
             
             if (currentCategory === 'Favoriler') {
-                // Favorileri, kullanıcının kaydettiği sıraya göre diz
                 filteredChannels = favoriteChannels
                     .map(favName => channels.find(c => c.name === favName))
                     .filter(c => c !== undefined); 
@@ -813,51 +744,34 @@
                 const button = document.createElement('div');
                 button.className = `channel-btn ${currentActiveChannelObj && currentActiveChannelObj.name === channel.name ? 'active' : ''}`;
                 
-                // Oynatma fonksiyonu ataması
-                button.onclick = (e) => {
-                    // Sürükleme esnasında tıklanmayı engellemek için
-                    if(!button.classList.contains('dragging')){
-                        playChannel(channel, button);
-                    }
-                };
+                button.onclick = () => playChannel(channel, button);
 
                 let displayName = channel.name;
                 let hasHD = false;
                 let isYedek = false;
                 
-                // Rozet kelimelerini temizle ve belirteçleri aktif et
                 if (displayName.includes(' HD')) {
                     displayName = displayName.replace(' HD', '');
                     hasHD = true;
                 }
                 
                 if (displayName.toLowerCase().includes('yedek')) {
-                    // " Yedek", "Yedek", " YEDEK" fark etmeksizin siler
                     displayName = displayName.replace(/yedek/i, '').trim();
                     isYedek = true;
                 }
 
-                // Sürükle-bırak ikonu sadece Favoriler'de çıkar
                 let dragHandleHTML = '';
                 if (isFavorilerTab) {
-                    button.setAttribute('draggable', 'true');
-                    button.dataset.channel = channel.name;
-                    
-                    button.addEventListener('dragstart', handleDragStart);
-                    button.addEventListener('dragover', handleDragOver);
-                    button.addEventListener('dragleave', handleDragLeave);
-                    button.addEventListener('drop', handleDrop);
-                    button.addEventListener('dragend', handleDragEnd);
-
+                    // event.stopPropagation() ekleyerek ikonun videoyu başlatmasını engelliyoruz
                     dragHandleHTML = `
-                        <div class="drag-handle" title="Tut ve Sürükle">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div class="drag-handle" title="Tut ve Sürükle" onclick="event.stopPropagation()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="8" y1="6" x2="21" y2="6"></line>
                                 <line x1="8" y1="12" x2="21" y2="12"></line>
                                 <line x1="8" y1="18" x2="21" y2="18"></line>
-                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                <circle cx="4" cy="6" r="1"></circle>
+                                <circle cx="4" cy="12" r="1"></circle>
+                                <circle cx="4" cy="18" r="1"></circle>
                             </svg>
                         </div>
                     `;
@@ -881,6 +795,23 @@
                                            
                 channelListContainer.appendChild(button);
             });
+
+            // Yalnızca Favoriler sekmesinde ve arama yapılmıyorken sürükle bırak sistemini çalıştır
+            if (isFavorilerTab) {
+                sortableInstance = new Sortable(channelListContainer, {
+                    animation: 150,
+                    handle: '.drag-handle', // Sadece ikondan tutulmasına izin ver
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function (evt) {
+                        // Eğer gerçekten bir yer değişikliği yapıldıysa kaydet
+                        if (evt.oldIndex !== evt.newIndex) {
+                            const movedItem = favoriteChannels.splice(evt.oldIndex, 1)[0];
+                            favoriteChannels.splice(evt.newIndex, 0, movedItem);
+                            localStorage.setItem('fatih_favorites', JSON.stringify(favoriteChannels));
+                        }
+                    }
+                });
+            }
         }
 
         document.addEventListener('keydown', (e) => {
