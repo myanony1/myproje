@@ -230,10 +230,14 @@
         .tab-btn.ulusal.active { background-color: var(--ulusal-color); color: #fff; }
         .tab-btn.favoriler.active { background-color: var(--fav-color); color: #fff; }
 
-        .channel-list { 
+                .channel-list { 
             padding: 10px 15px 80px 15px; 
             overflow-y: auto; 
-            flex: 1;         
+            flex: 1;   
+            /* YENİ: Liste elemanlarını birbirinden düzgün ayırmak için flex ve gap ekliyoruz */
+            display: flex;
+            flex-direction: column;
+            gap: 8px; 
         }
 
         .channel-list::-webkit-scrollbar { width: 8px; }
@@ -241,17 +245,40 @@
         body.light-mode .channel-list::-webkit-scrollbar-thumb { background-color: #bbb; }
 
         .channel-btn {
-            width: 100%; background-color: transparent; color: var(--text-color);
-            border: none; padding: 10px 15px; margin-bottom: 8px; text-align: left;
-            font-size: 15px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
-            display: flex; align-items: center; gap: 12px;
+            width: 100%; 
+            /* YENİ: Tamamen transparan yerine çok hafif, kutu hissi veren bir arka plan ve sınır */
+            background-color: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            color: var(--text-color);
+            padding: 12px 15px; /* İç boşluğu biraz artırarak ferahlattık */
+            /* margin-bottom: 8px; -> Silindi, yerine .channel-list içinde gap kullandık */
+            text-align: left;
+            font-size: 15px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
         }
 
         .channel-btn:hover { background-color: #333; transform: translateX(5px); }
-        .channel-btn.active { background-color: #444; font-weight: 600; }
+        /* YENİ: Aktif kanalın arka planını ve çerçevesini belirginleştiriyoruz */
+        .channel-btn.active { 
+            background-color: #444; 
+            font-weight: 600; 
+            border-color: rgba(255, 255, 255, 0.15);
+        }
 
-        body.light-mode .channel-btn:hover { background-color: #f0f0f0; }
-        body.light-mode .channel-btn.active { background-color: #e5e5e5; }
+        /* YENİ: Gündüz modu için hafif gölgeli kart/grid görünümü */
+        body.light-mode .channel-btn { 
+            background-color: #ffffff; 
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        body.light-mode .channel-btn:hover { background-color: #f8f9fa; }
+        body.light-mode .channel-btn.active { background-color: #e9ecef; border-color: #ced4da; }
+
 
         .channel-icon-tv {
             width: 24px;
