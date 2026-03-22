@@ -321,29 +321,46 @@
         body.light-mode .channel-icon-tv { stroke: var(--text-color); }
 
         /* --- ROZET (BADGE) STİLLERİ --- */
-        .badge-container {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-left: 8px;
-        }
+.badge-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+}
 
-        .hd-badge, .yedek-badge {
-            color: #fff;
-            font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
-            letter-spacing: 0.5px; display: inline-block; vertical-align: middle;
-        }
+/* Tüm rozetlerin ortak stiline yeni sınıfları ekledik */
+.hd-badge, .yedek-badge, .vip-badge, .badge-4k, .premium-badge {
+    color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
+    letter-spacing: 0.5px; display: inline-block; vertical-align: middle;
+}
 
-        .hd-badge {
-            background: linear-gradient(45deg, #e50914, #ff4b2b);
-            box-shadow: 0 0 5px rgba(229, 9, 20, 0.4);
-        }
+.hd-badge {
+    background: linear-gradient(45deg, #e50914, #ff4b2b);
+    box-shadow: 0 0 5px rgba(229, 9, 20, 0.4);
+}
 
-        .yedek-badge {
-            background: linear-gradient(45deg, #f39c12, var(--yedek-color));
-            box-shadow: 0 0 5px rgba(243, 156, 18, 0.4);
-        }
-        /* -------------------------------- */
+.yedek-badge {
+    background: linear-gradient(45deg, #f39c12, var(--yedek-color));
+    box-shadow: 0 0 5px rgba(243, 156, 18, 0.4);
+}
+
+.vip-badge {
+    background: linear-gradient(45deg, #8e44ad, #9b59b6);
+    box-shadow: 0 0 5px rgba(142, 68, 173, 0.4);
+}
+
+.badge-4k {
+    background: linear-gradient(45deg, #0984e3, #74b9ff);
+    box-shadow: 0 0 5px rgba(9, 132, 227, 0.4);
+}
+
+.premium-badge {
+    background: linear-gradient(45deg, #d4af37, #f1c40f);
+    color: #000; /* Altın sarısı zemin üzerinde siyah metin daha şık durur */
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.4);
+}
+/* -------------------------------- */
 
         .fav-star { margin-left: auto; font-size: 20px; color: #555; cursor: pointer; transition: 0.2s; padding-left: 10px; }
         .fav-star:hover { transform: scale(1.2); }
@@ -620,7 +637,9 @@
         const channels = [
             { name: "FatihSports 1 HD", url: "https://noisy-cake-8ebc.travestigamzes.workers.dev/https://corestream.ronaldovurdu.help//hls/bein-sports-1.m3u8", category: "Spor" },
             { name: "FatihSports 1 HD Yedek", url: "https://noisy-cake-8ebc.travestigamzes.workers.dev/https://andro.0638527.xyz/checklist/androstreamlivebs1.m3u8", category: "Spor" },
+            { name: "FatihSports 1 HD VIP", url: "https://dga1op10s1u3leo.ec876fd9240622.click/live/xbeinsports-1/playlist.m3u8", category: "Spor" },
             { name: "FatihSports 2 HD", url: "https://noisy-cake-8ebc.travestigamzes.workers.dev/https://corestream.ronaldovurdu.help//hls/bein-sports-2.m3u8", category: "Spor" },
+            { name: "FatihSports 2 HD PREMIUM", url: "https://dga1op10s1u3leo.ec876fd9240622.click/live/xbeinsports-2/playlist.m3u8", category: "Spor" },
             { name: "FatihSports 3 HD", url: "https://noisy-cake-8ebc.travestigamzes.workers.dev/https://corestream.ronaldovurdu.help//hls/bein-sports-3.m3u8", category: "Spor" },
             { name: "FatihSports 4 HD", url: "https://noisy-cake-8ebc.travestigamzes.workers.dev/https://corestream.ronaldovurdu.help//hls/bein-sports-4.m3u8", category: "Spor" },
             { name: "FatihSports 5 HD", url: "https://noisy-cake-8ebc.travestigamzes.workers.dev/https://corestream.ronaldovurdu.help//hls/bein-sports-5.m3u8", category: "Spor" },
@@ -635,7 +654,6 @@
             { name: "Tabii Spor 2 HD", url: "https://mr8bv4kl1nq7sh9tw2xp5zj6g.medya.trt.com.tr/master_1440p.m3u8", category: "Spor" },
             { name: "Tabii Spor 3 HD", url: "https://mr4vl7nq2sh9tw5xp1zk3gj8b.medya.trt.com.tr/master_1440p.m3u8", category: "Spor" },
             { name: "Tabii Spor 4 HD", url: "https://sh7tq2nw5mr1vl9xp4zk3gj8k.medya.trt.com.tr/master_1440p.m3u8", category: "Spor" },
-            { name: "Tabii Spor 5 HD", url: "https://noisy-cake-8ebc.travestigamzes.workers.dev/https://andro.0638527.xyz/checklist/androstreamlivetb5.m3u8", category: "Spor" },
             { name: "Trt 1 HD", url: "https://tv-trt1-dash.medya.trt.com.tr/master.mpd", category: "Ulusal" },
             { name: "TV8 HD", url: "https://noisy-cake-8ebc.travestigamzes.workers.dev/http://andro.0638527.xyz/checklist/androstreamlivetv8.m3u8", category: "Ulusal" },
             { name: "TV8 HD Yedek", url: "https://noisy-cake-8ebc.travestigamzes.workers.dev/https://api.hitnova.net/s/tv8/mono.m3u8", category: "Ulusal" },
@@ -753,18 +771,41 @@
                 button.onclick = () => playChannel(channel, button);
 
                 let displayName = channel.name;
-                let hasHD = false;
-                let isYedek = false;
-                
-                if (displayName.includes(' HD')) {
-                    displayName = displayName.replace(' HD', '');
-                    hasHD = true;
-                }
-                
-                if (displayName.toLowerCase().includes('yedek')) {
-                    displayName = displayName.replace(/yedek/i, '').trim();
-                    isYedek = true;
-                }
+let hasHD = false;
+let isYedek = false;
+let isVIP = false;
+let is4K = false;
+let isPremium = false;
+
+// 4K Kontrolü (HD'den önce kontrol etmek isim formatı için daha sağlıklıdır)
+if (displayName.includes(' 4K')) {
+    displayName = displayName.replace(' 4K', '');
+    is4K = true;
+}
+
+// HD Kontrolü
+if (displayName.includes(' HD')) {
+    displayName = displayName.replace(' HD', '');
+    hasHD = true;
+}
+
+// YEDEK Kontrolü
+if (displayName.toLowerCase().includes('yedek')) {
+    displayName = displayName.replace(/yedek/i, '').trim();
+    isYedek = true;
+}
+
+// VIP Kontrolü
+if (displayName.toLowerCase().includes('vip')) {
+    displayName = displayName.replace(/vip/i, '').trim();
+    isVIP = true;
+}
+
+// PREMIUM Kontrolü
+if (displayName.toLowerCase().includes('premium')) {
+    displayName = displayName.replace(/premium/i, '').trim();
+    isPremium = true;
+}
 
                 let dragHandleHTML = '';
                 if (isFavorilerTab) {
@@ -784,20 +825,23 @@
                 }
 
                 button.innerHTML = `
-                    ${dragHandleHTML}
-                    <svg class="channel-icon-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                        <text x="11.5" y="13" font-family="Poppins, sans-serif" font-weight="bold" font-size="15" font-style="italic" fill="currentColor" stroke="none" text-anchor="middle" dominant-baseline="central">F</text>
-                    </svg>
-                    <span style="flex: 1; display: flex; align-items: center; pointer-events: none;">
-                        ${displayName} 
-                        <span class="badge-container">
-                            ${hasHD ? '<span class="hd-badge">HD</span>' : ''}
-                            ${isYedek ? '<span class="yedek-badge">YEDEK</span>' : ''}
-                        </span>
-                    </span>
-                    <span class="fav-star ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${channel.name}')">★</span>
-                `;
+    ${dragHandleHTML}
+    <svg class="channel-icon-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+        <text x="11.5" y="13" font-family="Poppins, sans-serif" font-weight="bold" font-size="15" font-style="italic" fill="currentColor" stroke="none" text-anchor="middle" dominant-baseline="central">F</text>
+    </svg>
+    <span style="flex: 1; display: flex; align-items: center; pointer-events: none;">
+        ${displayName} 
+        <span class="badge-container">
+            ${isPremium ? '<span class="premium-badge">PREMIUM</span>' : ''}
+            ${isVIP ? '<span class="vip-badge">VIP</span>' : ''}
+            ${is4K ? '<span class="badge-4k">4K</span>' : ''}
+            ${hasHD ? '<span class="hd-badge">HD</span>' : ''}
+            ${isYedek ? '<span class="yedek-badge">YEDEK</span>' : ''}
+        </span>
+    </span>
+    <span class="fav-star ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${channel.name}')">★</span>
+`;
                                            
                 channelListContainer.appendChild(button);
             });
