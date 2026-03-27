@@ -6,11 +6,8 @@
     <title>FatihSports | Canlı</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000000'/><text x='50%25' y='50%25' font-family='Poppins, sans-serif' font-weight='bold' font-size='70' fill='%23e50914' dominant-baseline='central' text-anchor='middle'>F</text></svg>">
     
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
-    
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css">
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
@@ -26,9 +23,6 @@
             --ulusal-color: #dc3545; 
             --fav-color: #f39c12; 
             --yedek-color: #e67e22;
-            
-            --plyr-color-main: #e50914; 
-            --plyr-video-background: #000000;
         }
 
         body.light-mode {
@@ -127,14 +121,23 @@
             align-items: center; justify-content: center; position: relative;
         }
 
-        .plyr { width: 100%; height: 100%; }
+        /* --- SHAKA PLAYER STİLLERİ --- */
+        .shaka-video-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            background-color: #000;
+        }
 
-        .plyr__video-wrapper,  
-        .plyr__video-wrapper video {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: contain !important; 
-            background: #000; 
+        #tv-player {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+        }
+
+        /* Shaka Player özel tema renkleri */
+        .shaka-controls-container * {
+            --shaka-color-primary: var(--primary-color);
         }
 
         .player-info-bar {
@@ -282,7 +285,6 @@
             position: relative;
         }
 
-        /* --- SÜRÜKLE BIRAK YENİ STİLLER (SORTABLEJS UYUMLU) --- */
         .drag-handle {
             display: flex;
             align-items: center;
@@ -291,7 +293,7 @@
             cursor: grab;
             margin-right: -5px;
             padding: 5px;
-            touch-action: none; /* Mobilde scroll ile karışmasını engeller */
+            touch-action: none; 
         }
         .drag-handle:active { cursor: grabbing; }
         .drag-handle:hover { color: var(--text-color); }
@@ -320,47 +322,17 @@
         .channel-btn.active .channel-icon-tv { stroke: var(--primary-color); }
         body.light-mode .channel-icon-tv { stroke: var(--text-color); }
 
-        /* --- ROZET (BADGE) STİLLERİ --- */
-.badge-container {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: 8px;
-}
+        .badge-container { display: flex; align-items: center; gap: 6px; margin-left: 8px; }
 
-/* Tüm rozetlerin ortak stiline yeni sınıfları ekledik */
-.hd-badge, .yedek-badge, .vip-badge, .badge-4k, .premium-badge {
-    color: #fff;
-    font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
-    letter-spacing: 0.5px; display: inline-block; vertical-align: middle;
-}
-
-.hd-badge {
-    background: linear-gradient(45deg, #e50914, #ff4b2b);
-    box-shadow: 0 0 5px rgba(229, 9, 20, 0.4);
-}
-
-.yedek-badge {
-    background: linear-gradient(45deg, #f39c12, var(--yedek-color));
-    box-shadow: 0 0 5px rgba(243, 156, 18, 0.4);
-}
-
-.vip-badge {
-    background: linear-gradient(45deg, #8e44ad, #9b59b6);
-    box-shadow: 0 0 5px rgba(142, 68, 173, 0.4);
-}
-
-.badge-4k {
-    background: linear-gradient(45deg, #0984e3, #74b9ff);
-    box-shadow: 0 0 5px rgba(9, 132, 227, 0.4);
-}
-
-.premium-badge {
-    background: linear-gradient(45deg, #d4af37, #f1c40f);
-    color: #000; /* Altın sarısı zemin üzerinde siyah metin daha şık durur */
-    box-shadow: 0 0 5px rgba(212, 175, 55, 0.4);
-}
-/* -------------------------------- */
+        .hd-badge, .yedek-badge, .vip-badge, .badge-4k, .premium-badge {
+            color: #fff; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
+            letter-spacing: 0.5px; display: inline-block; vertical-align: middle;
+        }
+        .hd-badge { background: linear-gradient(45deg, #e50914, #ff4b2b); box-shadow: 0 0 5px rgba(229, 9, 20, 0.4); }
+        .yedek-badge { background: linear-gradient(45deg, #f39c12, var(--yedek-color)); box-shadow: 0 0 5px rgba(243, 156, 18, 0.4); }
+        .vip-badge { background: linear-gradient(45deg, #8e44ad, #9b59b6); box-shadow: 0 0 5px rgba(142, 68, 173, 0.4); }
+        .badge-4k { background: linear-gradient(45deg, #0984e3, #74b9ff); box-shadow: 0 0 5px rgba(9, 132, 227, 0.4); }
+        .premium-badge { background: linear-gradient(45deg, #d4af37, #f1c40f); color: #000; box-shadow: 0 0 5px rgba(212, 175, 55, 0.4); }
 
         .fav-star { margin-left: auto; font-size: 20px; color: #555; cursor: pointer; transition: 0.2s; padding-left: 10px; }
         .fav-star:hover { transform: scale(1.2); }
@@ -439,12 +411,9 @@
         }
         
         .social-btn:hover { transform: translateY(-3px); filter: brightness(1.1); }
-        
         .social-btn.telegram { background-color: #24A1DE; }
         .social-btn.twitter { background-color: #000000; border: 1px solid rgba(255,255,255,0.2); }
-        
         body.light-mode .social-btn.twitter { border: none; }
-        
         .social-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
         @media (max-width: 900px) {
@@ -608,6 +577,14 @@
     </div>
 
     <script>
+        // Shaka Player'ı başlatalım
+        document.addEventListener('DOMContentLoaded', () => {
+            shaka.polyfill.installAll();
+            if (!shaka.Player.isBrowserSupported()) {
+                console.error('Tarayıcınız Shaka Player\'ı desteklemiyor.');
+            }
+        });
+
         const themeToggleBtn = document.getElementById('theme-toggle');
         if (localStorage.getItem('fatih_theme') === 'light') document.body.classList.add('light-mode');
 
@@ -620,18 +597,10 @@
         const infoModal = document.getElementById('info-modal');
         const closeModalBtn = document.getElementById('close-modal');
 
-        infoBtn.addEventListener('click', () => {
-            infoModal.classList.add('active');
-        });
-
-        closeModalBtn.addEventListener('click', () => {
-            infoModal.classList.remove('active');
-        });
-
+        infoBtn.addEventListener('click', () => { infoModal.classList.add('active'); });
+        closeModalBtn.addEventListener('click', () => { infoModal.classList.remove('active'); });
         infoModal.addEventListener('click', (e) => {
-            if (e.target === infoModal) {
-                infoModal.classList.remove('active');
-            }
+            if (e.target === infoModal) infoModal.classList.remove('active');
         });
 
         const channels = [
@@ -669,7 +638,7 @@
         let currentVisibleChannels = []; 
         let favoriteChannels = JSON.parse(localStorage.getItem('fatih_favorites')) || [];
         let forceHideLoaderTimeout = null; 
-        let sortableInstance = null; // SortableJS için değişken
+        let sortableInstance = null; 
 
         const channelListContainer = document.getElementById('channel-list');
         const videoWrapper = document.getElementById('video-wrapper');
@@ -681,9 +650,9 @@
         const infoChannelName = document.getElementById('info-channel-name');
         const infoCategoryName = document.getElementById('info-category-name');
         
-        let hlsPlayer = null;
-        let dashPlayer = null;
-        let plyrInstance = null;
+        // Shaka Player Değişkenleri
+        let shakaPlayer = null;
+        let shakaUI = null;
 
         searchInput.addEventListener('input', () => {
             renderChannels(searchInput.value.toLowerCase());
@@ -731,7 +700,6 @@
         }
 
         function renderChannels(searchTerm = '') {
-            // Eğer daha önceden oluşturulmuş bir Sortable kütüphanesi varsa temizle
             if (sortableInstance) {
                 sortableInstance.destroy();
                 sortableInstance = null;
@@ -774,45 +742,20 @@
                 button.onclick = () => playChannel(channel, button);
 
                 let displayName = channel.name;
-let hasHD = false;
-let isYedek = false;
-let isVIP = false;
-let is4K = false;
-let isPremium = false;
+                let hasHD = false;
+                let isYedek = false;
+                let isVIP = false;
+                let is4K = false;
+                let isPremium = false;
 
-// 4K Kontrolü (HD'den önce kontrol etmek isim formatı için daha sağlıklıdır)
-if (displayName.includes(' 4K')) {
-    displayName = displayName.replace(' 4K', '');
-    is4K = true;
-}
-
-// HD Kontrolü
-if (displayName.includes(' HD')) {
-    displayName = displayName.replace(' HD', '');
-    hasHD = true;
-}
-
-// YEDEK Kontrolü
-if (displayName.toLowerCase().includes('yedek')) {
-    displayName = displayName.replace(/yedek/i, '').trim();
-    isYedek = true;
-}
-
-// VIP Kontrolü
-if (displayName.toLowerCase().includes('vip')) {
-    displayName = displayName.replace(/vip/i, '').trim();
-    isVIP = true;
-}
-
-// PREMIUM Kontrolü
-if (displayName.toLowerCase().includes('premium')) {
-    displayName = displayName.replace(/premium/i, '').trim();
-    isPremium = true;
-}
+                if (displayName.includes(' 4K')) { displayName = displayName.replace(' 4K', ''); is4K = true; }
+                if (displayName.includes(' HD')) { displayName = displayName.replace(' HD', ''); hasHD = true; }
+                if (displayName.toLowerCase().includes('yedek')) { displayName = displayName.replace(/yedek/i, '').trim(); isYedek = true; }
+                if (displayName.toLowerCase().includes('vip')) { displayName = displayName.replace(/vip/i, '').trim(); isVIP = true; }
+                if (displayName.toLowerCase().includes('premium')) { displayName = displayName.replace(/premium/i, '').trim(); isPremium = true; }
 
                 let dragHandleHTML = '';
                 if (isFavorilerTab) {
-                    // event.stopPropagation() ekleyerek ikonun videoyu başlatmasını engelliyoruz
                     dragHandleHTML = `
                         <div class="drag-handle" title="Tut ve Sürükle" onclick="event.stopPropagation()">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -828,35 +771,33 @@ if (displayName.toLowerCase().includes('premium')) {
                 }
 
                 button.innerHTML = `
-    ${dragHandleHTML}
-    <svg class="channel-icon-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-        <text x="11.5" y="13" font-family="Poppins, sans-serif" font-weight="bold" font-size="15" font-style="italic" fill="currentColor" stroke="none" text-anchor="middle" dominant-baseline="central">F</text>
-    </svg>
-    <span style="flex: 1; display: flex; align-items: center; pointer-events: none;">
-        ${displayName} 
-        <span class="badge-container">
-            ${isPremium ? '<span class="premium-badge">PREMIUM</span>' : ''}
-            ${isVIP ? '<span class="vip-badge">VIP</span>' : ''}
-            ${is4K ? '<span class="badge-4k">4K</span>' : ''}
-            ${hasHD ? '<span class="hd-badge">HD</span>' : ''}
-            ${isYedek ? '<span class="yedek-badge">YEDEK</span>' : ''}
-        </span>
-    </span>
-    <span class="fav-star ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${channel.name}')">★</span>
-`;
+                    ${dragHandleHTML}
+                    <svg class="channel-icon-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <text x="11.5" y="13" font-family="Poppins, sans-serif" font-weight="bold" font-size="15" font-style="italic" fill="currentColor" stroke="none" text-anchor="middle" dominant-baseline="central">F</text>
+                    </svg>
+                    <span style="flex: 1; display: flex; align-items: center; pointer-events: none;">
+                        ${displayName} 
+                        <span class="badge-container">
+                            ${isPremium ? '<span class="premium-badge">PREMIUM</span>' : ''}
+                            ${isVIP ? '<span class="vip-badge">VIP</span>' : ''}
+                            ${is4K ? '<span class="badge-4k">4K</span>' : ''}
+                            ${hasHD ? '<span class="hd-badge">HD</span>' : ''}
+                            ${isYedek ? '<span class="yedek-badge">YEDEK</span>' : ''}
+                        </span>
+                    </span>
+                    <span class="fav-star ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${channel.name}')">★</span>
+                `;
                                            
                 channelListContainer.appendChild(button);
             });
 
-            // Yalnızca Favoriler sekmesinde ve arama yapılmıyorken sürükle bırak sistemini çalıştır
             if (isFavorilerTab) {
                 sortableInstance = new Sortable(channelListContainer, {
                     animation: 150,
-                    handle: '.drag-handle', // Sadece ikondan tutulmasına izin ver
+                    handle: '.drag-handle', 
                     ghostClass: 'sortable-ghost',
                     onEnd: function (evt) {
-                        // Eğer gerçekten bir yer değişikliği yapıldıysa kaydet
                         if (evt.oldIndex !== evt.newIndex) {
                             const movedItem = favoriteChannels.splice(evt.oldIndex, 1)[0];
                             favoriteChannels.splice(evt.newIndex, 0, movedItem);
@@ -903,20 +844,7 @@ if (displayName.toLowerCase().includes('premium')) {
             }
         }
 
-        function startSmartPlayback() {
-            if (!plyrInstance) return;
-            const playPromise = plyrInstance.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.catch((error) => {
-                    console.log("Otomatik oynatma tarayıcı tarafından engellendi.");
-                    loaderOverlay.style.display = 'none';
-                    if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
-                });
-            }
-        }
-
-        function playChannel(channel, buttonElement = null) {
+        async function playChannel(channel, buttonElement = null) {
             currentActiveChannelObj = channel;
             
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
@@ -937,12 +865,19 @@ if (displayName.toLowerCase().includes('premium')) {
                 }
             }, 10000);
 
-            if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
-            if (dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
-            if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
+            // Shaka Player Temizliği (Daha önceki oynatıcıyı kapat)
+            if (shakaUI) { await shakaUI.destroy(); shakaUI = null; }
+            if (shakaPlayer) { await shakaPlayer.destroy(); shakaPlayer = null; }
 
-            videoWrapper.innerHTML = '<video id="tv-player" controls crossorigin playsinline></video>';
+            // Yeni Oynatıcı DOM Yapısı
+            videoWrapper.innerHTML = `
+                <div data-shaka-player-container class="shaka-video-container">
+                    <video id="tv-player" autoplay playsinline></video>
+                </div>
+            `;
+            
             const video = document.getElementById('tv-player');
+            const videoContainer = video.parentElement;
 
             video.addEventListener('playing', () => {
                 loaderOverlay.style.display = 'none';
@@ -955,73 +890,35 @@ if (displayName.toLowerCase().includes('premium')) {
                 if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
             });
 
-            const url = channel.url.toLowerCase();
-            const plyrOptions = {
-                controls: ['play-large', 'play', 'live', 'mute', 'volume', 'settings', 'pip', 'airplay', 'fullscreen'],
-                i18n: { qualityLabel: { 0: 'Otomatik' } }
+            // Shaka Player'ı Başlat
+            shakaPlayer = new shaka.Player(video);
+            shakaUI = new shaka.ui.Overlay(shakaPlayer, videoContainer, video);
+
+            // İsteğe Bağlı: Shaka Arayüz (UI) Kontrollerini Özelleştirme
+            const uiConfig = {
+                controlPanelElements: [
+                    'play_pause', 'live_tv', 'spacer', 'mute', 'volume', 'fullscreen', 'overflow_menu'
+                ],
+                overflowMenuButtons: ['quality', 'language', 'picture_in_picture', 'cast']
             };
+            shakaUI.configure(uiConfig);
 
-            if (url.includes('.m3u8')) {
-                if (Hls.isSupported()) {
-                    hlsPlayer = new Hls({ maxMaxBufferLength: 10 }); 
-                    
-                    hlsPlayer.on(Hls.Events.ERROR, function (event, data) {
-                        if (data.fatal) {
-                            switch (data.type) {
-                                case Hls.ErrorTypes.NETWORK_ERROR:
-                                case Hls.ErrorTypes.MEDIA_ERROR:
-                                    loaderOverlay.style.display = 'none';
-                                    errorOverlay.style.display = 'flex';
-                                    hlsPlayer.destroy();
-                                    break;
-                                default:
-                                    hlsPlayer.destroy();
-                                    break;
-                            }
-                        }
-                    });
+            // Shaka Hata Yakalama
+            shakaPlayer.addEventListener('error', (event) => {
+                console.error('Shaka Hata Detayı:', event.detail);
+                loaderOverlay.style.display = 'none';
+                errorOverlay.style.display = 'flex';
+                if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
+            });
 
-                    hlsPlayer.loadSource(channel.url);
-                    hlsPlayer.attachMedia(video);
-                    
-                    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function () {
-                        const availableQualities = hlsPlayer.levels.map((l) => l.height);
-                        availableQualities.unshift(0); 
-                        
-                        plyrOptions.quality = {
-                            default: 0,
-                            options: availableQualities,
-                            forced: true,
-                            onChange: (e) => {
-                                if (e === 0) hlsPlayer.currentLevel = -1; 
-                                else hlsPlayer.levels.forEach((l, i) => { if (l.height === e) hlsPlayer.currentLevel = i; });
-                            }
-                        };
-                        plyrInstance = new Plyr(video, plyrOptions);
-                        startSmartPlayback();
-                    });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = channel.url;
-                    plyrInstance = new Plyr(video, plyrOptions);
-                    video.addEventListener('loadedmetadata', () => startSmartPlayback());
-                }
-            } 
-            else if (url.includes('.mpd')) {
-                if (typeof dashjs !== 'undefined') {
-                    dashPlayer = dashjs.MediaPlayer().create();
-                    
-                    dashPlayer.on(dashjs.MediaPlayer.events.ERROR, function() {
-                        loaderOverlay.style.display = 'none';
-                        errorOverlay.style.display = 'flex';
-                    });
-
-                    dashPlayer.initialize(video, channel.url, false);
-                    plyrInstance = new Plyr(video, plyrOptions);
-                    
-                    plyrInstance.on('ready', () => {
-                        startSmartPlayback();
-                    });
-                }
+            try {
+                // Shaka Player direkt olarak hem .m3u8 hem de .mpd uzantılarını destekler.
+                await shakaPlayer.load(channel.url);
+                console.log('Video başarıyla yüklendi!');
+            } catch (error) {
+                console.error('Video yükleme hatası:', error);
+                loaderOverlay.style.display = 'none';
+                errorOverlay.style.display = 'flex';
             }
         }
 
