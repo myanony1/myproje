@@ -140,6 +140,8 @@
             --shaka-color-primary: var(--primary-color);
         }
 
+.embed-iframe { width: 100%; height: 100%; border: none; background: #000; }
+
         .player-info-bar {
             background-color: var(--panel-bg);
             padding: 15px 25px;
@@ -844,83 +846,84 @@
             }
         }
 
-        async function playChannel(channel, buttonElement = null) {
-            currentActiveChannelObj = channel;
-            
-            document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
-            if(buttonElement) buttonElement.classList.add('active');
-            else renderChannels(searchInput.value.toLowerCase()); 
-            
-            infoChannelName.innerText = channel.name;
-            infoCategoryName.innerText = channel.category + " Kanalı";
-            playerInfoBar.style.display = 'flex';
-            
-            loaderOverlay.style.display = 'flex';
-            errorOverlay.style.display = 'none';
+   async function playChannel(channel, buttonElement = null) {
+    currentActiveChannelObj = channel;
+    
+    document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
+    if(buttonElement) buttonElement.classList.add('active');
+    else renderChannels(searchInput.value.toLowerCase()); 
+    
+    infoChannelName.innerText = channel.name;
+    infoCategoryName.innerText = channel.category + " Kanalı";
+    playerInfoBar.style.display = 'flex';
+    
+    loaderOverlay.style.display = 'flex';
+    errorOverlay.style.display = 'none';
 
-            if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
-            forceHideLoaderTimeout = setTimeout(() => {
-                if(loaderOverlay.style.display === 'flex') {
-                    loaderOverlay.style.display = 'none';
-                }
-            }, 10000);
+    if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
 
-            // Shaka Player Temizliği (Daha önceki oynatıcıyı kapat)
-            if (shakaUI) { await shakaUI.destroy(); shakaUI = null; }
-            if (shakaPlayer) { await shakaPlayer.destroy(); shakaPlayer = null; }
+    // --- MANTIK BAŞLANGICI: HLS/MPD mi yoksa EMBED mi? ---
+    const isStream = channel.url.includes('.m3u8') || channel.url.includes('.mpd') || channel.url.includes('checklist');
 
-            // Yeni Oynatıcı DOM Yapısı
-            videoWrapper.innerHTML = `
-                <div data-shaka-player-container class="shaka-video-container">
-                    <video id="tv-player" autoplay playsinline></video>
-                </div>
-            `;
-            
-            const video = document.getElementById('tv-player');
-            const videoContainer = video.parentElement;
+    if (!isStream) {
+        // --- EMBED (VIP KANAL) MANTIĞI ---
+        loaderOverlay.style.display = 'none'; // Iframe kendi yüklenir
+        videoWrapper.innerHTML = `
+            <iframe src="${channel.url}" 
+                    class="embed-iframe" 
+                    style="width: 100%; height: 100%; border: none; background: #000;"
+                    allow="autoplay; fullscreen; picture-in-picture" 
+                    allowfullscreen>
+            </iframe>`;
+        
+        // Shaka temizliği yapalım ki arkada ses kalmasın
+        if (shakaUI) { await shakaUI.destroy(); shakaUI = null; }
+        if (shakaPlayer) { await shakaPlayer.destroy(); shakaPlayer = null; }
+        return; // Fonksiyondan çık, Shaka'yı çalıştırma
+    }
 
-            video.addEventListener('playing', () => {
-                loaderOverlay.style.display = 'none';
-                if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
-            });
-
-            video.addEventListener('error', () => {
-                loaderOverlay.style.display = 'none';
-                errorOverlay.style.display = 'flex';
-                if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
-            });
-
-            // Shaka Player'ı Başlat
-            shakaPlayer = new shaka.Player(video);
-            shakaUI = new shaka.ui.Overlay(shakaPlayer, videoContainer, video);
-
-            // İsteğe Bağlı: Shaka Arayüz (UI) Kontrollerini Özelleştirme
-            const uiConfig = {
-                controlPanelElements: [
-                    'play_pause', 'live_tv', 'spacer', 'mute', 'volume', 'fullscreen', 'overflow_menu'
-                ],
-                overflowMenuButtons: ['quality', 'language', 'picture_in_picture', 'cast']
-            };
-            shakaUI.configure(uiConfig);
-
-            // Shaka Hata Yakalama
-            shakaPlayer.addEventListener('error', (event) => {
-                console.error('Shaka Hata Detayı:', event.detail);
-                loaderOverlay.style.display = 'none';
-                errorOverlay.style.display = 'flex';
-                if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
-            });
-
-            try {
-                // Shaka Player direkt olarak hem .m3u8 hem de .mpd uzantılarını destekler.
-                await shakaPlayer.load(channel.url);
-                console.log('Video başarıyla yüklendi!');
-            } catch (error) {
-                console.error('Video yükleme hatası:', error);
-                loaderOverlay.style.display = 'none';
-                errorOverlay.style.display = 'flex';
-            }
+    // --- NORMAL YAYIN (SHAKA PLAYER) MANTIĞI ---
+    forceHideLoaderTimeout = setTimeout(() => {
+        if(loaderOverlay.style.display === 'flex') {
+            loaderOverlay.style.display = 'none';
         }
+    }, 10000);
+
+    // Shaka Player Temizliği
+    if (shakaUI) { await shakaUI.destroy(); shakaUI = null; }
+    if (shakaPlayer) { await shakaPlayer.destroy(); shakaPlayer = null; }
+
+    videoWrapper.innerHTML = `
+        <div data-shaka-player-container class="shaka-video-container">
+            <video id="tv-player" autoplay playsinline></video>
+        </div>
+    `;
+    
+    const video = document.getElementById('tv-player');
+    const videoContainer = video.parentElement;
+
+    video.addEventListener('playing', () => {
+        loaderOverlay.style.display = 'none';
+        if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
+    });
+
+    shakaPlayer = new shaka.Player(video);
+    shakaUI = new shaka.ui.Overlay(shakaPlayer, videoContainer, video);
+
+    const uiConfig = {
+        controlPanelElements: ['play_pause', 'live_tv', 'spacer', 'mute', 'volume', 'fullscreen', 'overflow_menu']
+    };
+    shakaUI.configure(uiConfig);
+
+    try {
+        await shakaPlayer.load(channel.url);
+    } catch (error) {
+        console.error('Yükleme hatası:', error);
+        loaderOverlay.style.display = 'none';
+        errorOverlay.style.display = 'flex';
+    }
+}
+  
 
         document.addEventListener('fullscreenchange', () => {
             if (document.fullscreenElement) {
