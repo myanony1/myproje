@@ -11,7 +11,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -23,12 +23,14 @@
             --ulusal-color: #dc3545; 
             --fav-color: #f39c12; 
             --yedek-color: #e67e22;
+            --app-bg: #000000;
         }
 
         body.light-mode {
             --bg-color: #f4f4f4;
             --panel-bg: #ffffff;
             --text-color: #121212; 
+            --app-bg: #e0e0e0;
         }
 
         * {
@@ -36,26 +38,46 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
+            background-color: var(--app-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;         
+            height: 100dvh;        
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+
+        /* --- MOBİL UYGULAMA ÇERÇEVESİ --- */
+        .app-wrapper {
+            width: 100%;
+            max-width: 480px; /* Telefon görünümü için sınır */
+            height: 100%;
             background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
             flex-direction: column;
-            height: 100vh;         
-            height: 100dvh;        
+            position: relative;
             overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
             transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        body.light-mode .app-wrapper {
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
         }
 
         header {
             background-color: var(--panel-bg);
-            padding: 15px 30px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             z-index: 10;
             transition: background-color 0.3s ease;
             flex-shrink: 0;
@@ -64,315 +86,327 @@
         .brand-container {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             text-decoration: none;
             color: inherit;
-            cursor: pointer;
         }
 
         .brand-logo {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             flex-shrink: 0;
-            transition: transform 0.3s ease;
-        }
-        
-        .brand-container:hover .brand-logo {
-            transform: scale(1.1);
         }
 
-        header h1 { font-size: 24px; font-weight: 700; letter-spacing: 1px; }
+        header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
         header h1 span { color: var(--primary-color); }
 
         .header-controls {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
         }
 
         .header-btn {
             background: none; border: none; cursor: pointer;
-            transition: transform 0.3s ease, color 0.3s ease; display: flex;
-            align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             color: var(--text-color);
         }
-        .header-btn:hover { transform: scale(1.1); color: var(--primary-color); }
-        .header-btn svg { width: 26px; height: 26px; transition: all 0.3s ease; }
+        .header-btn svg { width: 24px; height: 24px; transition: color 0.3s ease; }
 
         #icon-moon { display: none; }
         #icon-sun { display: block; }
         body.light-mode #icon-sun { display: none; }
         body.light-mode #icon-moon { display: block; }
 
-        .main-container { 
-            display: flex; 
-            flex: 1; 
-            overflow: hidden; 
-            min-height: 0; 
-        }
-
         .player-section {
-            flex: 3; background-color: #000; display: flex;
-            flex-direction: column; position: relative;
+            flex-shrink: 0; 
+            width: 100%;
+            background-color: #000; 
+            display: flex;
+            flex-direction: column; 
+            position: relative;
+            z-index: 5;
         }
 
         #video-wrapper {
-            width: 100%; flex: 1; display: flex;
+            width: 100%; 
+            aspect-ratio: 16 / 9; /* Mobil için mükemmel oran */
+            display: flex;
             align-items: center; justify-content: center; position: relative;
         }
 
         /* --- SHAKA PLAYER STİLLERİ --- */
-        .shaka-video-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            background-color: #000;
-        }
-
-        #tv-player {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; 
-        }
-
-        /* Shaka Player özel tema renkleri */
-        .shaka-controls-container * {
-            --shaka-color-primary: var(--primary-color);
-        }
-
-.embed-iframe { width: 100%; height: 100%; border: none; background: #000; }
+        .shaka-video-container { width: 100%; height: 100%; display: flex; background-color: #000; }
+        #tv-player { width: 100%; height: 100%; object-fit: contain; }
+        .shaka-controls-container * { --shaka-color-primary: var(--primary-color); }
+        .embed-iframe { width: 100%; height: 100%; border: none; background: #000; }
 
         .player-info-bar {
             background-color: var(--panel-bg);
-            padding: 15px 25px;
+            padding: 8px 15px;
             display: flex;
             align-items: center;
-            border-top: 1px solid rgba(128, 128, 128, 0.2);
-            font-size: 16px;
+            border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+            font-size: 13px;
             font-weight: 600;
             flex-shrink: 0;
             transition: background-color 0.3s ease;
         }
 
         .live-indicator-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--primary-color);
-            font-weight: 700;
+            display: flex; align-items: center; gap: 6px; color: var(--primary-color); font-weight: 700; font-size: 11px;
         }
 
         .live-indicator {
-            width: 10px; height: 10px; background-color: var(--primary-color);
+            width: 8px; height: 8px; background-color: var(--primary-color);
             border-radius: 50%; animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(229, 9, 20, 0); }
+            70% { box-shadow: 0 0 0 8px rgba(229, 9, 20, 0); }
             100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0); }
         }
 
-        .info-separator {
-            color: #666;
-            margin: 0 10px;
-            font-weight: 400;
-        }
-
-        .info-category {
-            color: #888;
-            font-weight: 400;
-            font-size: 15px;
-        }
+        .info-separator { color: #666; margin: 0 8px; font-weight: 400; }
+        .info-category { color: #888; font-weight: 400; font-size: 12px; }
         body.light-mode .info-category { color: #666; }
 
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85); display: none; flex-direction: column;
             align-items: center; justify-content: center; z-index: 20; color: #fff;
+            font-size: 14px;
         }
 
         .spinner {
-            width: 50px; height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.2);
+            width: 40px; height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
             border-top-color: var(--primary-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .error-message { font-size: 18px; font-weight: 600; margin-bottom: 15px; text-align: center; }
+        .error-message { font-size: 15px; font-weight: 600; margin-bottom: 12px; text-align: center; }
         
         .retry-btn {
             background-color: var(--primary-color); color: #fff;
-            border: none; padding: 10px 20px; border-radius: 5px;
-            font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.3s;
+            border: none; padding: 8px 16px; border-radius: 5px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
         }
-        .retry-btn:hover { background-color: #b80710; }
 
         .initial-message {
             display: flex; flex-direction: column; align-items: center;
-            gap: 15px; color: #ccc; font-size: 18px; font-weight: 600;
-            text-align: center; opacity: 0.8; padding: 20px;
+            gap: 10px; color: #ccc; font-size: 14px; font-weight: 500;
+            text-align: center; opacity: 0.8; padding: 15px;
         }
         
-        .initial-message svg { width: 60px; height: 60px; stroke: var(--primary-color); }
+        .initial-message svg { width: 40px; height: 40px; stroke: var(--primary-color); }
 
-        .sidebar {
-            flex: 1; background-color: var(--panel-bg);
-            min-width: 300px; max-width: 400px; display: flex; flex-direction: column;
-            border-left: 1px solid rgba(128, 128, 128, 0.2); overflow: hidden;
-            transition: background-color 0.3s ease;
+        /* --- İÇERİK BÖLÜMÜ (KANALLAR) --- */
+        .content-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            padding-bottom: 65px; /* Navbar boşluğu */
         }
 
-        .sidebar-header { padding: 20px 20px 10px 20px; font-weight: 600; font-size: 18px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;}
-
-        .search-container { padding: 0 20px 15px 20px; flex-shrink: 0; }
+        .search-container { 
+            padding: 15px 15px 10px 15px; 
+            flex-shrink: 0; 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
         
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
         .search-input {
-            width: 100%; padding: 10px 15px; border-radius: 6px;
-            border: 1px solid #444; background-color: #222; color: #fff;
+            width: 100%; padding: 12px 15px 12px 40px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1); background-color: var(--panel-bg); color: var(--text-color);
             outline: none; transition: border-color 0.3s; font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+        
+        .search-icon {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            width: 18px; height: 18px; fill: none; stroke: #888; stroke-width: 2;
+        }
+
         .search-input:focus { border-color: var(--primary-color); }
-        body.light-mode .search-input { background-color: #f0f0f0; border-color: #ccc; color: #333; }
+        body.light-mode .search-input { border-color: rgba(0,0,0,0.1); box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
 
-        .category-tabs {
-            display: flex; padding: 0 20px 15px 20px; gap: 8px;
-            border-bottom: 1px solid rgba(128, 128, 128, 0.2); flex-shrink: 0;
+        .channel-count-badge {
+            background: linear-gradient(45deg, #00b09b, #96c93d); color: #fff;
+            font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 176, 155, 0.4); flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        .tab-btn {
-            flex: 1; padding: 8px; border: none; border-radius: 6px;
-            cursor: pointer; background-color: #333; color: #fff;
-            font-weight: 600; font-size: 13px; transition: all 0.3s ease;
-        }
-
-        body.light-mode .tab-btn { background-color: #e0e0e0; color: #333; }
-        .tab-btn:hover { opacity: 0.8; }
-        .tab-btn.spor.active { background-color: var(--spor-color); color: #fff; }
-        .tab-btn.ulusal.active { background-color: var(--ulusal-color); color: #fff; }
-        .tab-btn.favoriler.active { background-color: var(--fav-color); color: #fff; }
 
         .channel-list { 
-            padding: 10px; 
+            padding: 5px 15px 15px 15px; 
             overflow-y: auto; 
             flex: 1;   
             display: flex;
             flex-direction: column;
-            gap: 6px; 
+            gap: 8px; 
         }
 
-        .channel-list::-webkit-scrollbar { width: 8px; }
+        .channel-list::-webkit-scrollbar { width: 5px; }
         .channel-list::-webkit-scrollbar-thumb { background-color: #444; border-radius: 4px; }
         body.light-mode .channel-list::-webkit-scrollbar-thumb { background-color: #bbb; }
 
         .channel-btn {
             width: 100%; 
-            background-color: rgba(255, 255, 255, 0.03); 
+            background-color: var(--panel-bg); 
             border: 1px solid rgba(255, 255, 255, 0.05); 
             color: var(--text-color);
-            padding: 16px 20px;
+            padding: 14px 15px;
             text-align: left;
-            font-size: 17px;
-            border-radius: 10px;
+            font-size: 15px;
+            border-radius: 12px;
             cursor: pointer; 
-            transition: background-color 0.3s ease, border-color 0.3s ease;
             display: flex; 
             align-items: center; 
-            gap: 15px;
+            gap: 12px;
             flex-shrink: 0;
-            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.1s ease, border-color 0.2s ease;
         }
+        
+        .channel-btn:active { transform: scale(0.98); }
 
         .drag-handle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            cursor: grab;
-            margin-right: -5px;
-            padding: 5px;
-            touch-action: none; 
+            display: flex; align-items: center; justify-content: center;
+            color: #666; cursor: grab; margin-right: -5px; padding: 5px; touch-action: none; 
         }
-        .drag-handle:active { cursor: grabbing; }
-        .drag-handle:hover { color: var(--text-color); }
         
-        .sortable-ghost {
-            opacity: 0.4;
-            background-color: #222 !important;
-            border: 2px dashed var(--fav-color) !important;
-        }
-        body.light-mode .sortable-ghost { background-color: #eee !important; }
+        .sortable-ghost { opacity: 0.4; border: 2px dashed var(--fav-color) !important; }
 
-        .channel-btn:hover { background-color: #333; }
-        .channel-btn.active { background-color: #444; font-weight: 600; border-color: rgba(255, 255, 255, 0.15); }
+        .channel-btn.active { border-color: var(--primary-color); font-weight: 600; box-shadow: 0 0 10px rgba(229, 9, 20, 0.2); }
 
-        body.light-mode .channel-btn { background-color: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        body.light-mode .channel-btn:hover { background-color: #f8f9fa; }
-        body.light-mode .channel-btn.active { background-color: #e9ecef; border-color: #ced4da; }
+        body.light-mode .channel-btn { border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        body.light-mode .channel-btn.active { border-color: var(--primary-color); }
 
         .channel-icon-tv { 
-            width: 28px;
-            height: 28px; 
-            flex-shrink: 0; 
-            stroke: var(--text-color); 
-            transition: stroke 0.3s ease; 
+            width: 24px; height: 24px; flex-shrink: 0; stroke: var(--text-color); 
         }
         .channel-btn.active .channel-icon-tv { stroke: var(--primary-color); }
         body.light-mode .channel-icon-tv { stroke: var(--text-color); }
 
-        .badge-container { display: flex; align-items: center; gap: 6px; margin-left: 8px; }
+        .badge-container { display: flex; align-items: center; gap: 4px; margin-left: 6px; }
 
         .hd-badge, .yedek-badge, .vip-badge, .badge-4k, .premium-badge {
-            color: #fff; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;
-            letter-spacing: 0.5px; display: inline-block; vertical-align: middle;
+            color: #fff; font-size: 9px; font-weight: 700; padding: 2px 4px; border-radius: 3px;
+            letter-spacing: 0.3px; display: inline-block; vertical-align: middle;
         }
-        .hd-badge { background: linear-gradient(45deg, #e50914, #ff4b2b); box-shadow: 0 0 5px rgba(229, 9, 20, 0.4); }
-        .yedek-badge { background: linear-gradient(45deg, #f39c12, var(--yedek-color)); box-shadow: 0 0 5px rgba(243, 156, 18, 0.4); }
-        .vip-badge { background: linear-gradient(45deg, #8e44ad, #9b59b6); box-shadow: 0 0 5px rgba(142, 68, 173, 0.4); }
-        .badge-4k { background: linear-gradient(45deg, #0984e3, #74b9ff); box-shadow: 0 0 5px rgba(9, 132, 227, 0.4); }
-        .premium-badge { background: linear-gradient(45deg, #d4af37, #f1c40f); color: #000; box-shadow: 0 0 5px rgba(212, 175, 55, 0.4); }
+        .hd-badge { background: linear-gradient(45deg, #e50914, #ff4b2b); }
+        .yedek-badge { background: linear-gradient(45deg, #f39c12, var(--yedek-color)); }
+        .vip-badge { background: linear-gradient(45deg, #8e44ad, #9b59b6); }
+        .badge-4k { background: linear-gradient(45deg, #0984e3, #74b9ff); }
+        .premium-badge { background: linear-gradient(45deg, #d4af37, #f1c40f); color: #000; }
 
-        .fav-star { margin-left: auto; font-size: 20px; color: #555; cursor: pointer; transition: 0.2s; padding-left: 10px; }
-        .fav-star:hover { transform: scale(1.2); }
+        .fav-star { margin-left: auto; font-size: 22px; color: #555; padding: 5px; transition: 0.2s; }
         .fav-star.active { color: var(--fav-color); text-shadow: 0 0 5px rgba(243, 156, 18, 0.5); }
         body.light-mode .fav-star { color: #ccc; }
         body.light-mode .fav-star.active { color: var(--fav-color); }
 
-        .empty-fav { text-align: center; padding: 20px; color: #888; font-size: 14px; }
-
-        .channel-count-badge {
-            background: linear-gradient(45deg, #00b09b, #96c93d); color: #fff;
-            font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 176, 155, 0.4); letter-spacing: 0.5px;
+        .empty-fav { text-align: center; padding: 30px 20px; color: #888; font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .empty-fav svg { width: 50px; height: 50px; stroke: #555; }
+        
+        /* --- BOTTOM NAVBAR (ALT MENÜ) --- */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background-color: var(--panel-bg);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.4);
+            z-index: 100;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: env(safe-area-inset-bottom); /* iOS Güvenli Alan Desteği */
+        }
+        
+        body.light-mode .bottom-nav {
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
+            border-top: 1px solid rgba(0,0,0,0.05);
         }
 
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+            text-decoration: none;
+            width: 33.33%;
+            height: 100%;
+            cursor: pointer;
+            transition: color 0.3s ease, transform 0.2s ease;
+            gap: 4px;
+            border: none;
+            background: transparent;
+        }
+
+        body.light-mode .nav-item { color: #999; }
+
+        .nav-icon { 
+            width: 22px; 
+            height: 22px; 
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-text { font-size: 11px; font-weight: 600; letter-spacing: 0.3px; }
+
+        .nav-item.active { transform: translateY(-2px); }
+        .nav-item.active .nav-icon { stroke-width: 2.5; transform: scale(1.1); }
+        
+        .nav-item.spor.active { color: var(--spor-color); }
+        .nav-item.ulusal.active { color: var(--primary-color); }
+        .nav-item.favoriler.active { color: var(--fav-color); }
+
+        /* --- BİLDİRİMLER (TOAST) --- */
         .toast-container {
-            position: fixed; bottom: 20px; right: 20px; display: flex;
-            flex-direction: column; gap: 10px; z-index: 9999; pointer-events: none;
+            position: absolute; bottom: 80px; left: 15px; right: 15px; display: flex;
+            flex-direction: column; gap: 10px; z-index: 99; pointer-events: none;
         }
 
         .toast {
-            background-color: #2a2a2a; color: #fff; padding: 12px 20px;
-            border-radius: 8px; font-size: 14px; font-weight: 500;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); display: flex; align-items: center;
-            gap: 10px; transform: translateX(120%); opacity: 0;
+            background-color: rgba(40, 40, 40, 0.95); backdrop-filter: blur(5px); color: #fff; padding: 12px 15px;
+            border-radius: 10px; font-size: 13px; font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center;
+            gap: 10px; transform: translateY(20px); opacity: 0;
             transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s ease;
         }
 
-        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.show { transform: translateY(0); opacity: 1; }
         .toast.success { border-left: 4px solid var(--spor-color); }
         .toast.warning { border-left: 4px solid var(--primary-color); }
-        body.light-mode .toast { background-color: #ffffff; color: #333; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        body.light-mode .toast { background-color: rgba(255, 255, 255, 0.95); color: #333; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); }
 
+        /* --- MODAL --- */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(8px);
-            z-index: 99999; display: flex; align-items: center; justify-content: center;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 999; display: flex; align-items: center; justify-content: center;
             opacity: 0; pointer-events: none;
             transition: opacity 0.3s ease;
         }
@@ -381,132 +415,72 @@
 
         .modal-content {
             background-color: var(--panel-bg); color: var(--text-color);
-            padding: 30px; border-radius: 16px; width: 90%; max-width: 380px;
+            padding: 25px; border-radius: 20px; width: 85%;
             position: relative; transform: translateY(30px);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 15px 40px rgba(0,0,0,0.5);
             text-align: center;
         }
 
-        body.light-mode .modal-content { box-shadow: 0 15px 40px rgba(0,0,0,0.15); }
-
         .modal-overlay.active .modal-content { transform: translateY(0); }
 
         .close-modal-btn {
-            position: absolute; top: 15px; right: 15px;
-            background: rgba(128, 128, 128, 0.2); border: none; color: var(--text-color);
-            width: 32px; height: 32px; border-radius: 50%;
-            font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: background 0.3s ease;
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(128, 128, 128, 0.1); border: none; color: var(--text-color);
+            width: 30px; height: 30px; border-radius: 50%;
+            font-size: 20px; display: flex; align-items: center; justify-content: center;
         }
-        .close-modal-btn:hover { background: var(--primary-color); color: #fff; }
 
-        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
-
-        .social-buttons { display: flex; flex-direction: column; gap: 12px; }
-
+        .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; }
+        .social-buttons { display: flex; flex-direction: column; gap: 10px; }
         .social-btn {
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            padding: 12px 20px; border-radius: 10px; text-decoration: none;
-            color: #fff; font-weight: 600; font-size: 15px;
-            transition: transform 0.2s ease, filter 0.2s ease;
+            padding: 12px; border-radius: 12px; text-decoration: none;
+            color: #fff; font-weight: 600; font-size: 14px;
         }
-        
-        .social-btn:hover { transform: translateY(-3px); filter: brightness(1.1); }
         .social-btn.telegram { background-color: #24A1DE; }
         .social-btn.twitter { background-color: #000000; border: 1px solid rgba(255,255,255,0.2); }
         body.light-mode .social-btn.twitter { border: none; }
-        .social-btn svg { width: 20px; height: 20px; fill: currentColor; }
+        .social-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-        @media (max-width: 900px) {
-            header { padding: 10px 15px; }
-            header h1 { font-size: 20px; }
-            .brand-logo { width: 28px; height: 28px; } 
-            
-            .header-controls { gap: 10px; }
-            .header-btn svg { width: 22px; height: 22px; }
-
-            .main-container { flex-direction: column; }
-            
-            .player-section { 
-                flex: 0 0 auto;
-                width: 100%;
-                height: auto;
-            }
-
-            #video-wrapper {
-                aspect-ratio: 16 / 9;
-                height: auto;
-            }
-
-            .player-info-bar {
-                padding: 10px 15px;
-                font-size: 14px;
-            }
-
-            .info-separator { margin: 0 6px; }
-            .info-category { font-size: 13px; }
-
-            .sidebar { 
-                max-width: 100%; 
-                flex: 1; 
-                border-left: none; 
-                border-top: 2px solid var(--primary-color); 
-                min-height: 0; 
-            }
-
-            .sidebar-header { padding: 12px 15px 8px 15px; font-size: 16px; }
-            .search-container { padding: 0 15px 10px 15px; }
-            .search-input { padding: 8px 12px; font-size: 13px; }
-            .category-tabs { padding: 0 15px 10px 15px; }
-            .tab-btn { padding: 6px; font-size: 12px; }
-            .channel-list { padding: 5px 10px 10px 10px; gap: 4px;}
-            .channel-btn { padding: 14px 16px; font-size: 16px; }
-
-            .toast-container {
-                bottom: 15px; left: 15px; right: 15px; 
-                align-items: center; 
-            }
-            .toast { width: 100%; justify-content: center; }
-        }
     </style>
 </head>
 <body>
 
-    <header>
-        <a href="/" class="brand-container">
-            <svg class="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <rect width="100" height="100" rx="25" fill="#e50914"/>
-                <polygon points="40,28 40,72 75,50" fill="#ffffff"/>
-            </svg>
-            <h1>Fatih<span>Sports</span></h1>
-        </a>
-        
-        <div class="header-controls">
-            <button id="info-btn" class="header-btn" aria-label="İletişim ve Bilgi">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    <div class="app-wrapper">
+        <header>
+            <a href="/" class="brand-container">
+                <svg class="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100" height="100" rx="25" fill="#e50914"/>
+                    <polygon points="40,28 40,72 75,50" fill="#ffffff"/>
                 </svg>
-            </button>
+                <h1>Fatih<span>Sports</span></h1>
+            </a>
+            
+            <div class="header-controls">
+                <button id="info-btn" class="header-btn" aria-label="İletişim ve Bilgi">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                </button>
 
-            <button id="theme-toggle" class="header-btn" aria-label="Temayı Değiştir">
-                <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-                <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            </button>
-        </div>
-    </header>
+                <button id="theme-toggle" class="header-btn" aria-label="Temayı Değiştir">
+                    <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
 
-    <div class="main-container">
         <div class="player-section">
             <div id="loader-overlay" class="overlay-screen">
                 <div class="spinner"></div>
@@ -514,7 +488,7 @@
             </div>
 
             <div id="error-overlay" class="overlay-screen">
-                <div class="error-message">⚠️ Yayın şu an ulaşılamıyor.</div>
+                <div class="error-message">⚠️ Yayın ulaşılamıyor.</div>
                 <button class="retry-btn" onclick="retryStream()">Yeniden Dene</button>
             </div>
 
@@ -526,60 +500,71 @@
                     <span>CANLI</span>
                 </div>
                 <span class="info-separator">-</span>
-                <span id="info-channel-name"></span>
-                <span class="info-separator">-</span>
-                <span id="info-category-name" class="info-category"></span>
+                <span id="info-channel-name" style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
             </div>
-            
         </div>
 
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <span>Kanal Listesi</span>
-                <span id="channel-count-badge" class="channel-count-badge"></span>
-            </div>
-            
+        <div class="content-section">
             <div class="search-container">
-                <input type="text" id="channel-search" class="search-input" placeholder="Kanal ara...">
-            </div>
-
-            <div id="toast-container" class="toast-container"></div>
-            
-            <div class="category-tabs">
-                <button class="tab-btn spor active" onclick="setCategory('Spor')">Spor</button>
-                <button class="tab-btn ulusal" onclick="setCategory('Ulusal')">Ulusal</button>
-                <button class="tab-btn favoriler" onclick="setCategory('Favoriler')">Favoriler</button>
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="channel-search" class="search-input" placeholder="Kanal ara...">
+                </div>
+                <div id="channel-count-badge" class="channel-count-badge">0</div>
             </div>
 
             <div class="channel-list" id="channel-list"></div>
         </div>
-    </div>
 
-    <div id="info-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button id="close-modal" class="close-modal-btn">&times;</button>
-            <h2 class="modal-title">İletişimde Kalın</h2>
-            <p style="font-size: 14px; margin-bottom: 20px; opacity: 0.8;">Duyurular ve güncellemeler için sosyal medya hesaplarımızı takip edebilirsiniz.</p>
-            
-            <div class="social-buttons">
-                <a href="https://t.me/fatihsports" target="_blank" class="social-btn telegram">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.06-.2-.06-.05-.14-.03-.21-.02-.09.02-1.46.93-4.12 2.73-.39.27-.74.4-1.06.39-.35-.01-1.02-.2-1.52-.36-.61-.2-1.09-.31-1.05-.66.02-.18.27-.36.75-.55 2.93-1.28 4.88-2.12 5.86-2.53 2.79-1.16 3.37-1.36 3.75-1.37.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .28z"/>
-                    </svg>
-                    Telegram
-                </a>
-                <a href="https://x.com/fatihsports" target="_blank" class="social-btn twitter">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                    X (Twitter)
-                </a>
+        <div id="toast-container" class="toast-container"></div>
+
+        <nav class="bottom-nav">
+            <button class="nav-item spor active" onclick="setCategory('Spor')">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 2a14.5 14.5 0 0 0 0 20"></path>
+                    <path d="M2 12h20"></path>
+                </svg>
+                <span class="nav-text">Spor</span>
+            </button>
+            <button class="nav-item ulusal" onclick="setCategory('Ulusal')">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+                    <polyline points="17 2 12 7 7 2"></polyline>
+                </svg>
+                <span class="nav-text">Ulusal</span>
+            </button>
+            <button class="nav-item favoriler" onclick="setCategory('Favoriler')">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span class="nav-text">Favoriler</span>
+            </button>
+        </nav>
+
+        <div id="info-modal" class="modal-overlay">
+            <div class="modal-content">
+                <button id="close-modal" class="close-modal-btn">&times;</button>
+                <h2 class="modal-title">İletişimde Kalın</h2>
+                <p style="font-size: 13px; margin-bottom: 20px; opacity: 0.8;">Duyurular ve güncellemeler için sosyal medya hesaplarımızı takip edebilirsiniz.</p>
+                
+                <div class="social-buttons">
+                    <a href="https://t.me/fatihsports" target="_blank" class="social-btn telegram">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.06-.2-.06-.05-.14-.03-.21-.02-.09.02-1.46.93-4.12 2.73-.39.27-.74.4-1.06.39-.35-.01-1.02-.2-1.52-.36-.61-.2-1.09-.31-1.05-.66.02-.18.27-.36.75-.55 2.93-1.28 4.88-2.12 5.86-2.53 2.79-1.16 3.37-1.36 3.75-1.37.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .28z"/>
+                        </svg>
+                        Telegram
+                    </a>
+                    <a href="https://x.com/fatihsports" target="_blank" class="social-btn twitter">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        X (Twitter)
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-
-    <script>
-        // Shaka Player'ı başlatalım
+    </div> <script>
         document.addEventListener('DOMContentLoaded', () => {
             shaka.polyfill.installAll();
             if (!shaka.Player.isBrowserSupported()) {
@@ -609,7 +594,7 @@
             { name: "FatihSports 1 HD", url: "https://abiggame.top/best/17.php", category: "Spor" },
             { name: "FatihSports 1 4K", url: "https://main.uxsyplayer0e0c6aba22.click/index.php?id=bein-sports-1#referrer=www.xyzsports-0.xyz", category: "Spor" },
             { name: "FatihSports 1 VIP", url: "https://74betorspintv.live/channel?id=zirve", category: "Spor" },
-{ name: "FatihSports 1 PREMIUM", url: "https://8602741.xyz/event.html?id=androstreamlivebs1", category: "Spor" },
+            { name: "FatihSports 1 PREMIUM", url: "https://8602741.xyz/event.html?id=androstreamlivebs1", category: "Spor" },
             { name: "FatihSports 2 HD", url: "https://black-snow-b418.hlsforeveer.workers.dev/https://corestream.ronaldovurdu.help//hls/bein-sports-2.m3u8", category: "Spor" },
             { name: "FatihSports 2 HD Yedek", url: "https://andro.0638527.xyz/checklist/androstreamlivebs2.m3u8", category: "Spor" },
             { name: "FatihSports 3 HD", url: "https://black-snow-b418.hlsforeveer.workers.dev/https://corestream.ronaldovurdu.help//hls/bein-sports-3.m3u8", category: "Spor" },
@@ -651,9 +636,7 @@
         
         const playerInfoBar = document.getElementById('player-info-bar');
         const infoChannelName = document.getElementById('info-channel-name');
-        const infoCategoryName = document.getElementById('info-category-name');
         
-        // Shaka Player Değişkenleri
         let shakaPlayer = null;
         let shakaUI = null;
 
@@ -664,8 +647,8 @@
         function setCategory(categoryName) {
             currentCategory = categoryName;
             searchInput.value = ''; 
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.tab-btn.${categoryName.toLowerCase()}`).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.nav-item.${categoryName.toLowerCase()}`).classList.add('active');
             renderChannels();
         }
 
@@ -678,7 +661,6 @@
             toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
             
             container.appendChild(toast);
-
             setTimeout(() => toast.classList.add('show'), 10);
 
             setTimeout(() => {
@@ -728,7 +710,7 @@
 
             if (filteredChannels.length === 0) {
                 const message = currentCategory === 'Favoriler' && !searchTerm ? 
-                    'Henüz favorilere eklediğiniz bir kanal yok.<br><br>Kanalların yanındaki yıldıza basarak ekleyebilirsiniz.' : 
+                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Henüz favorilere eklediğiniz bir kanal yok.<br>Kanalların yanındaki yıldıza basarak ekleyebilirsiniz.' : 
                     'Aramanıza uygun kanal bulunamadı.';
                 channelListContainer.innerHTML = `<div class="empty-fav">${message}</div>`;
                 return;
@@ -761,7 +743,7 @@
                 if (isFavorilerTab) {
                     dragHandleHTML = `
                         <div class="drag-handle" title="Tut ve Sürükle" onclick="event.stopPropagation()">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="8" y1="6" x2="21" y2="6"></line>
                                 <line x1="8" y1="12" x2="21" y2="12"></line>
                                 <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -779,9 +761,9 @@
                         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                         <text x="11.5" y="13" font-family="Poppins, sans-serif" font-weight="bold" font-size="15" font-style="italic" fill="currentColor" stroke="none" text-anchor="middle" dominant-baseline="central">F</text>
                     </svg>
-                    <span style="flex: 1; display: flex; align-items: center; pointer-events: none;">
-                        ${displayName} 
-                        <span class="badge-container">
+                    <span style="flex: 1; display: flex; flex-direction: column; pointer-events: none;">
+                        <span style="font-weight: 500;">${displayName}</span>
+                        <span class="badge-container" style="margin-left: 0; margin-top: 4px;">
                             ${isPremium ? '<span class="premium-badge">PREMIUM</span>' : ''}
                             ${isVIP ? '<span class="vip-badge">VIP</span>' : ''}
                             ${is4K ? '<span class="badge-4k">4K</span>' : ''}
@@ -811,121 +793,83 @@
             }
         }
 
-        document.addEventListener('keydown', (e) => {
-            if (document.activeElement === searchInput) return;
-
-            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                e.preventDefault(); 
-                
-                if (currentVisibleChannels.length === 0) return;
-                
-                let currentIndex = currentVisibleChannels.findIndex(c => c.name === currentActiveChannelObj?.name);
-                if (currentIndex === -1) currentIndex = 0;
-
-                if (e.key === 'ArrowDown') {
-                    currentIndex++;
-                    if (currentIndex >= currentVisibleChannels.length) currentIndex = 0; 
-                } else if (e.key === 'ArrowUp') {
-                    currentIndex--;
-                    if (currentIndex < 0) currentIndex = currentVisibleChannels.length - 1; 
-                }
-
-                playChannel(currentVisibleChannels[currentIndex]);
-                
-                setTimeout(() => {
-                    const activeBtn = document.querySelector('.channel-btn.active');
-                    if (activeBtn) {
-                        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }
-                }, 100);
-            }
-        });
-
         function retryStream() {
             if(currentActiveChannelObj) {
                 playChannel(currentActiveChannelObj);
             }
         }
 
-   async function playChannel(channel, buttonElement = null) {
-    currentActiveChannelObj = channel;
-    
-    document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
-    if(buttonElement) buttonElement.classList.add('active');
-    else renderChannels(searchInput.value.toLowerCase()); 
-    
-    infoChannelName.innerText = channel.name;
-    infoCategoryName.innerText = channel.category + " Kanalı";
-    playerInfoBar.style.display = 'flex';
-    
-    loaderOverlay.style.display = 'flex';
-    errorOverlay.style.display = 'none';
+        async function playChannel(channel, buttonElement = null) {
+            currentActiveChannelObj = channel;
+            
+            document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
+            if(buttonElement) buttonElement.classList.add('active');
+            else renderChannels(searchInput.value.toLowerCase()); 
+            
+            infoChannelName.innerText = channel.name + " (" + channel.category + ")";
+            playerInfoBar.style.display = 'flex';
+            
+            loaderOverlay.style.display = 'flex';
+            errorOverlay.style.display = 'none';
 
-    if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
+            if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
 
-    // --- MANTIK BAŞLANGICI: HLS/MPD mi yoksa EMBED mi? ---
-    const isStream = channel.url.includes('.m3u8') || channel.url.includes('.mpd') || channel.url.includes('checklist');
+            const isStream = channel.url.includes('.m3u8') || channel.url.includes('.mpd') || channel.url.includes('checklist');
 
-    if (!isStream) {
-        // --- EMBED (VIP KANAL) MANTIĞI ---
-        loaderOverlay.style.display = 'none'; // Iframe kendi yüklenir
-        videoWrapper.innerHTML = `
-            <iframe src="${channel.url}" 
-                    class="embed-iframe" 
-                    style="width: 100%; height: 100%; border: none; background: #000;"
-                    allow="autoplay; fullscreen; picture-in-picture" 
-                    allowfullscreen>
-            </iframe>`;
-        
-        // Shaka temizliği yapalım ki arkada ses kalmasın
-        if (shakaUI) { await shakaUI.destroy(); shakaUI = null; }
-        if (shakaPlayer) { await shakaPlayer.destroy(); shakaPlayer = null; }
-        return; // Fonksiyondan çık, Shaka'yı çalıştırma
-    }
+            if (!isStream) {
+                loaderOverlay.style.display = 'none';
+                videoWrapper.innerHTML = `
+                    <iframe src="${channel.url}" 
+                            class="embed-iframe" 
+                            allow="autoplay; fullscreen; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>`;
+                
+                if (shakaUI) { await shakaUI.destroy(); shakaUI = null; }
+                if (shakaPlayer) { await shakaPlayer.destroy(); shakaPlayer = null; }
+                return;
+            }
 
-    // --- NORMAL YAYIN (SHAKA PLAYER) MANTIĞI ---
-    forceHideLoaderTimeout = setTimeout(() => {
-        if(loaderOverlay.style.display === 'flex') {
-            loaderOverlay.style.display = 'none';
+            forceHideLoaderTimeout = setTimeout(() => {
+                if(loaderOverlay.style.display === 'flex') {
+                    loaderOverlay.style.display = 'none';
+                }
+            }, 10000);
+
+            if (shakaUI) { await shakaUI.destroy(); shakaUI = null; }
+            if (shakaPlayer) { await shakaPlayer.destroy(); shakaPlayer = null; }
+
+            videoWrapper.innerHTML = `
+                <div data-shaka-player-container class="shaka-video-container">
+                    <video id="tv-player" autoplay playsinline></video>
+                </div>
+            `;
+            
+            const video = document.getElementById('tv-player');
+            const videoContainer = video.parentElement;
+
+            video.addEventListener('playing', () => {
+                loaderOverlay.style.display = 'none';
+                if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
+            });
+
+            shakaPlayer = new shaka.Player(video);
+            shakaUI = new shaka.ui.Overlay(shakaPlayer, videoContainer, video);
+
+            const uiConfig = {
+                controlPanelElements: ['play_pause', 'live_tv', 'spacer', 'mute', 'volume', 'fullscreen', 'overflow_menu']
+            };
+            shakaUI.configure(uiConfig);
+
+            try {
+                await shakaPlayer.load(channel.url);
+            } catch (error) {
+                console.error('Yükleme hatası:', error);
+                loaderOverlay.style.display = 'none';
+                errorOverlay.style.display = 'flex';
+            }
         }
-    }, 10000);
-
-    // Shaka Player Temizliği
-    if (shakaUI) { await shakaUI.destroy(); shakaUI = null; }
-    if (shakaPlayer) { await shakaPlayer.destroy(); shakaPlayer = null; }
-
-    videoWrapper.innerHTML = `
-        <div data-shaka-player-container class="shaka-video-container">
-            <video id="tv-player" autoplay playsinline></video>
-        </div>
-    `;
-    
-    const video = document.getElementById('tv-player');
-    const videoContainer = video.parentElement;
-
-    video.addEventListener('playing', () => {
-        loaderOverlay.style.display = 'none';
-        if(forceHideLoaderTimeout) clearTimeout(forceHideLoaderTimeout);
-    });
-
-    shakaPlayer = new shaka.Player(video);
-    shakaUI = new shaka.ui.Overlay(shakaPlayer, videoContainer, video);
-
-    const uiConfig = {
-        controlPanelElements: ['play_pause', 'live_tv', 'spacer', 'mute', 'volume', 'fullscreen', 'overflow_menu']
-    };
-    shakaUI.configure(uiConfig);
-
-    try {
-        await shakaPlayer.load(channel.url);
-    } catch (error) {
-        console.error('Yükleme hatası:', error);
-        loaderOverlay.style.display = 'none';
-        errorOverlay.style.display = 'flex';
-    }
-}
   
-
         document.addEventListener('fullscreenchange', () => {
             if (document.fullscreenElement) {
                 if (screen.orientation && screen.orientation.lock) {
@@ -942,14 +886,13 @@
 
         window.onload = () => {
             renderChannels();
-            
             videoWrapper.innerHTML = `
                 <div class="initial-message">
                     <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
                         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                         <text x="11.5" y="13" font-family="Poppins, sans-serif" font-weight="bold" font-size="15" font-style="italic" fill="#ffffff" stroke="none" text-anchor="middle" dominant-baseline="central">F</text>
                     </svg>
-                    <span>Lütfen izlemek istediğiniz yayını seçin.</span>
+                    <span>İzlemek istediğiniz yayını seçin.</span>
                 </div>
             `;
         };
